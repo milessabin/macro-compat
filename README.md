@@ -4,6 +4,8 @@
 you to compile macros with Scala 2.10.x which are written to the Scala 2.11/2 macro API. This means that your macros
 can be written just once, for the current API, and still be portable to earlier Scala releases.
 
+[![Build Status](https://api.travis-ci.org/milessabin/macro-compat.png?branch=master)](https://travis-ci.org/milessabin/macro-compat)
+
 ## Why should you use macro-compat?
 
 Scala macros are hard enough to write once ... writing them twice, once for each of the two API versions is even more
