@@ -29,7 +29,7 @@ trait MacroCompat {
   import bundleContext.c
   import c.universe._
 
-  implicit def mkContextOps(c0: c.type): this.type = this
+  implicit def mkContextOps[C <: Context](c0: C): this.type = this
 
   def TypeName(s: String) = newTypeName(s)
   def TermName(s: String) = newTermName(s)

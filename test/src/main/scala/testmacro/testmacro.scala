@@ -37,7 +37,11 @@ object Test {
 class TestMacro(val c: whitebox.Context) {
   import c.universe._
 
-  def fooImpl: Tree = q""" 23 """
+  def fooImpl: Tree = {
+    val nme = TermName(c.freshName)
+
+    q""" 23 """
+  }
 
   def barImpl(i: Tree): Tree = q""" "bar" """
 
