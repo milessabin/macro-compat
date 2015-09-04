@@ -6,7 +6,7 @@ can be written just once, for the current API, and still be portable to earlier 
 
 [![Build Status](https://api.travis-ci.org/milessabin/macro-compat.png?branch=master)](https://travis-ci.org/milessabin/macro-compat)
 
-## Why should you use macro-compat?
+## Why you should use macro-compat
 
 Scala macros are hard enough to write once ... writing them twice, once for each of the two API versions is even more
 or a chore.
