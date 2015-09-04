@@ -13,6 +13,18 @@ cache:
   - "$HOME/.sbt"
 
 script:
-  - sbt ++${TRAVIS_SCALA_VERSION} validate ;
+  - if [[ "${TRAVIS_PULL_REQUEST}" == "false" &&
+          "${TRAVIS_BRANCH}" == "master" &&
+          $(cat version.sbt) =~ "-SNAPSHOT"
+    ]]; then
+      sbt ++${TRAVIS_SCALA_VERSION} validate publish ;
+    else
+      sbt ++${TRAVIS_SCALA_VERSION} validate ;
+    fi
 
 sudo: false
+
+env:
+  global:
+  - secure: IpoxV5fFSLBFGiwrY9jdqb0WP/kj9gux0Sp6lettwCYVZxlsCmfsVSwAJsUoxM7vSR+vA45vhi7jjxFpo9VQX/QQctM15Ob8vb1cAwqatosuLFmSkC1bGphA38d/863MBkAQu8b5wG8suRsbPJJRhVP+Ll1O4E1/wNcabsg4+hn53XQtNsTJKIeuZWaGp1wrpct/1nlSY0nvS7kB2N4jwVGMgj+7BHR9/ATGL8bCuC3LHVRlFoylKlzX6Q0gNu+oLT2n/BckxmH0EGiPfauo+6GG8XSAB3mO1/czG4Lc+WBURNSVEA7fi2knK1vBpJ7qH043Cq1rD+KUJPzLy73Qnwx0Qv1ESrvhxByP4QReB10ZI4hE0QoLk9Bm5wfxnucrA4FX4WlJS7ivmo7sa4bLAXz/7TfnbllvW4rDiIRN7m/ksBahXBAT9yEIR9+pviF+Ulox7JMYqjCm4i5Fl+DvCQFaxJ5Kk56IBtqavQVjQmLWwFCnOtI35tRAuU+38zKAdpcsOoZg7bdGteRywf86oxEoCh3xwPIhkLpyIY0vVvBX6HT6ct+gDb9SnkMYvVmN6tYKY67EvEEMaTVJ1wL5l8rRYoRYZEMZ7Fu3UPTAoYXvfQZwR82x0ffr+uX8YayW+jnaL6L9Bmj07LvKfgkn7+4iwti3GBJjDJWT3IXwCw0=
+  - secure: Exgiy4yr7UpfdSFCrOK2Kr7PHSPSXw8/wR54WvJUV43Ua0d2ux/9y14i6H6+h6+XXBETRqklzigHcFCSji278wBHzwNgbzg9CPeVTpwQuNLM+v0MYLss74YbWxp6L0N38DygQ2PNq77hFs+JYiFEb1PzDI5m2Rhoxz2e9ARDJ0wzZMaL5oFJ2EIpXpda73KJeaYL9hJYyIPst9GyfYJhEiB8iOztxOQNokon5u9jwYMwDW/GQuby+v55FrLf7LMwPDlnv02EK3GQZWCzuwnX4/ND8X9rzRUGTPPkEiroqdhHpdO9i0TM5l+6wUP7Q96xBdHhBV6m27qWGLPsS0+IqZvZxYIVdDrVaysmvAvRtzjbjinVVsep+zIJqcJYgBLu7x86Fa4Rm3QCmymGx6inCno0Xn+qvS2b7pc+cQK+CaJ7KjZuiYs8cNMFHBzCcVilJDmcy6RCYYhr1UJDXGPbTkd0UHKe0RRix36hZwJol1w2oCu2msaEte5xpY+kxt8UE7lzTP9MgBqEWIqfjdKjFg2yQ0X+kGyiU6Kh28ik+jZ4WuzqLMoR5qulDkVlL+2FtPfVWpfxQJZOYer7TYL9RjwNqkoKN9SDqXyOg51AWalMFoXlfTyI3ZcTu0OIjoaoR0m7ulKi7TgZ2rp3pqiLTkLLO1j9ScJdtRcN72SXGrg=
