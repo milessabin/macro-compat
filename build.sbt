@@ -121,7 +121,7 @@ lazy val publishSettings = Seq(
   pomExtra := (
     <developers>
       <developer>
-        <id>non</id>
+        <id>milessabin</id>
         <name>Miles Sabin</name>
         <url>http://milessabin.com/blog</url>
       </developer>
