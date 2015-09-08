@@ -26,7 +26,11 @@ trait MacroCompat {
 
   def TypeName(s: String) = newTypeName(s)
   def TermName(s: String) = newTermName(s)
+  val typeNames = tpnme
+
   def freshName = c.fresh
+  def freshName(name: String) = c.fresh(name)
+  def freshName[NameType <: Name](name: NameType) = c.fresh(name)
 
   implicit def mkContextOps(c0: c.type): this.type = this
 
@@ -59,6 +63,7 @@ trait MacroCompat {
 
   def appliedType(tc: Type, ts: List[Type]): Type = c.universe.appliedType(tc, ts)
   def appliedType(tc: Type, ts: Type*): Type = c.universe.appliedType(tc, ts.toList)
-}
 
+  def showCode(t: Tree): String = show(t)
+}
 
