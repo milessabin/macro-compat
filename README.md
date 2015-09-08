@@ -1,8 +1,8 @@
 # macro-compat: cross version Scala macro support
 
-**macro-compat** is a small library which, in conjunction with the [macro-paradise][paradise] compiler plugin, allows
-you to compile macros with Scala 2.10.x which are written to the Scala 2.11/2 macro API. This means that your macros
-can be written just once, for the current API, and still be portable to earlier Scala releases.
+**macro-compat** is a small library which, in conjunction with the [macro-paradise][macro-paradise] compiler plugin,
+allows you to compile macros with Scala 2.10.x which are written to the Scala 2.11/2 macro API. This means that your
+macros can be written just once, for the current API, and still be portable to earlier Scala releases.
 
 [![Build Status](https://api.travis-ci.org/milessabin/macro-compat.png?branch=master)](https://travis-ci.org/milessabin/macro-compat)
 
