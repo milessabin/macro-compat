@@ -20,20 +20,15 @@ import scala.language.experimental.macros
 
 import scala.reflect.macros.Context
 
-trait BundleContext {
-  val c: Context
-}
-
 trait MacroCompat {
-  val bundleContext: BundleContext
-  import bundleContext.c
+  val c: Context
   import c.universe._
-
-  implicit def mkContextOps[C <: Context](c0: C): this.type = this
 
   def TypeName(s: String) = newTypeName(s)
   def TermName(s: String) = newTermName(s)
   def freshName = c.fresh
+
+  implicit def mkContextOps(c0: c.type): this.type = this
 
   sealed trait TypecheckMode
   case object TERMmode extends TypecheckMode
@@ -47,7 +42,9 @@ trait MacroCompat {
     withImplicitViewsDisabled: Boolean = false,
     withMacrosDisabled: Boolean = false
   ): Tree =
-    mode match {
+    // Spurious non exhaustive match warning ... see,
+    //   https://issues.scala-lang.org/browse/SI-8068
+    (mode: @unchecked) match {
       case TERMmode =>
         c.typeCheck(tree, pt, silent, withImplicitViewsDisabled, withMacrosDisabled)
       case TYPEmode =>
@@ -61,7 +58,7 @@ trait MacroCompat {
   }
 
   def appliedType(tc: Type, ts: List[Type]): Type = c.universe.appliedType(tc, ts)
-  def appliedType(tc: Type, t: Type): Type = c.universe.appliedType(tc, List(t))
+  def appliedType(tc: Type, ts: Type*): Type = c.universe.appliedType(tc, ts.toList)
 }
 
 

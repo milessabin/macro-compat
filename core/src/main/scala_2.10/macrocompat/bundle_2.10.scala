@@ -27,6 +27,7 @@ class bundle extends StaticAnnotation {
 
 class BundleMacro[C <: Context](val c: C) {
   import c.universe._
+  import Flag._
 
   object TreeE {
     val TreeNme = newTypeName("Tree")
@@ -45,6 +46,15 @@ class BundleMacro[C <: Context](val c: C) {
     }
   }
 
+  object WeakTypeTagE {
+    val WTTNme = newTypeName("WeakTypeTag")
+    def unapply(t: Tree): Option[Tree] = t match {
+      case AppliedTypeTree(Ident(WTTNme), List(arg)) => Some(arg)
+      case AppliedTypeTree(Select(_, WTTNme), List(arg)) => Some(arg)
+      case _ => None
+    }
+  }
+
   object Repeat {
     val Scala = newTermName("scala")
     val Repeated = newTypeName("<repeated>")
@@ -58,9 +68,13 @@ class BundleMacro[C <: Context](val c: C) {
     }
   }
 
-  def convertImpl(d: DefDef, ctxNme: TermName): DefDef = {
+  def mkForwarder(d: DefDef, typeNme: TypeName, rename: TermName): DefDef = {
     val DefDef(mods, name, tparams, vparamss, tpt, rhs) = d
+    val ctxNme = newTermName(c.fresh)
     val ctxParam = q""" val $ctxNme: _root_.scala.reflect.macros.Context """
+
+    val targs = tparams.map(_.name)
+
     val cvparamss = vparamss.map(_.map { param =>
       val ValDef(mods, nme, tpt, rhs) = param
       val ctpt = tpt match {
@@ -68,6 +82,7 @@ class BundleMacro[C <: Context](val c: C) {
         case ExprE(t) => tq""" $ctxNme.Expr[$t] """
         case Repeat(TreeE(t)) => Repeat(tq""" $ctxNme.Expr[$t] """)
         case Repeat(ExprE(t)) => Repeat(tq""" $ctxNme.Expr[$t] """)
+        case WeakTypeTagE(t) => tq""" $ctxNme.WeakTypeTag[$t] """
       }
       ValDef(mods, nme, ctpt, rhs)
     })
@@ -78,15 +93,25 @@ class BundleMacro[C <: Context](val c: C) {
         case ExprE(_) => q""" $nme """
         case Repeat(TreeE(_)) => q""" $nme.map(_.tree): _* """
         case Repeat(ExprE(_)) => q""" $nme: _* """
+        case WeakTypeTagE(_) => q""" $nme """
       }
     })
 
-    val call = q""" inst($ctxNme).${name.toTermName}(...$cargss) """
-    val (ctpt, crhs) =
+    val instNme = newTermName(c.fresh)
+    val call = q""" $instNme.${name.toTermName}[..$targs](...$cargss) """
+    val (ctpt, wrap) =
       tpt match {
         case ExprE(tpt) => (tq""" $ctxNme.Expr[$tpt] """, call)
-        case TreeE(tpt) => (tq""" $ctxNme.Expr[Nothing] """, q""" $ctxNme.Expr($call) """)
+        case TreeE(tpt) => (tq""" $ctxNme.Expr[Nothing] """, q""" $ctxNme.Expr[Nothing]($call) """)
       }
+
+    val crhs =
+      q"""
+        {
+          val $instNme = new $typeNme[$ctxNme.type]($ctxNme)
+          $wrap
+        }
+      """
 
     DefDef(mods, name, tparams, List(ctxParam) :: cvparamss, ctpt, crhs)
   }
@@ -98,7 +123,8 @@ class BundleMacro[C <: Context](val c: C) {
       tpt match {
         case TreeE(_)|ExprE(_)
           if vparamss.forall(_.forall {
-            case ValDef(_, _, TreeE(_)|ExprE(_)|Repeat(TreeE(_))|Repeat(ExprE(_)), _) => true
+            case ValDef(mods, _, _, _) if mods hasFlag IMPLICIT => true
+            case ValDef(_, _, TreeE(_)|ExprE(_)|Repeat(TreeE(_))|Repeat(ExprE(_))|WeakTypeTag(_), _) => true
             case _ => false
           }) => Some(d)
         case _ => None
@@ -108,38 +134,42 @@ class BundleMacro[C <: Context](val c: C) {
 
   def bundleImpl(annottees: Tree*): Tree = {
     annottees match {
-      case List(ClassDef(mods, typeNme, tparams, Template(parents, self, body))) =>
+      case List(ClassDef(mods, macroClassNme, tparams, Template(parents, self, body))) =>
         val defns = body collect {
           case MacroImpl(d: DefDef) => d
         }
 
         val PARAMACCESSOR = (1L << 29).asInstanceOf[FlagSet]
-        val fdefns = body filter {
+        val macroDefns = body filter {
           case d: DefDef if d.name == nme.CONSTRUCTOR => false
           case ValDef(mods, _, _, _) if mods.hasFlag(PARAMACCESSOR) => false
           case _ => true
         }
 
-        val ctxNme = (body collectFirst { 
+        val clientCtxNme = (body collectFirst {
           case ValDef(mods, nme, _, _) if mods.hasFlag(PARAMACCESSOR) => nme
         }).getOrElse(c.abort(c.enclosingPosition, "Missing Context parameter"))
-        val ctxTypeNme = newTypeName(c.fresh)
 
-        val termNme = typeNme.toTermName
-        val cdefns = defns.map { d => convertImpl(d, ctxNme) }
+        val compatNme = newTermName("c")
+        val compatTypeNme = newTypeName(c.fresh)
+        val forwarders = defns.map { d => mkForwarder(d, macroClassNme, clientCtxNme) }
+        val alias =
+          if(clientCtxNme == compatNme) List()
+          else List(q""" val $clientCtxNme: $compatNme.type = $compatNme """)
+
+        val macroObjectNme = macroClassNme.toTermName
 
         q"""
-          class $typeNme[$ctxTypeNme <: _root_.scala.reflect.macros.Context]
-            (val $ctxNme: $ctxTypeNme) extends _root_.macrocompat.MacroCompat {
-            object bundleContext extends _root_.macrocompat.BundleContext {
-              val c: $ctxTypeNme = $typeNme.this.$ctxNme
+          class $macroClassNme[$compatTypeNme <: scala.reflect.macros.Context]
+            (val $compatNme: $compatTypeNme) extends $macroObjectNme.Stub
+
+          object $macroObjectNme {
+            trait Stub extends _root_.macrocompat.MacroCompat {
+              ..$alias
+              ..$macroDefns
             }
-            ..$fdefns
-          }
-          object $termNme {
-            def inst[$ctxTypeNme <: _root_.scala.reflect.macros.Context]
-              ($ctxNme: $ctxTypeNme) = new $typeNme[$ctxNme.type]($ctxNme)
-            ..$cdefns
+
+            ..$forwarders
           }
         """
 
