@@ -18,66 +18,34 @@ package testmacro
 
 import org.scalatest.FunSuite
 
-class MacroCompatCTests extends FunSuite {
+class MacroCompatTests extends FunSuite {
   test("No arg method, Tree") {
-    val res = TestC.foo
+    val res = Test.foo
     assert(res == 23)
   }
 
   test("One arg method, Tree") {
-    val res = TestC.bar(23)
+    val res = Test.bar(23)
     assert(res == "bar")
   }
 
   test("Variadic method, Tree") {
-    val res = TestC.baz(1, 2, 3)
+    val res = Test.baz(1, 2, 3)
     assert(res == 13)
   }
 
   test("No arg method, Expr") {
-    val res = TestC.fooE
+    val res = Test.fooE
     assert(res == 23)
   }
 
   test("One arg method, Expr") {
-    val res = TestC.barE(23)
+    val res = Test.barE(23)
     assert(res == "bar")
   }
 
   test("Variadic method, Expr") {
-    val res = TestC.bazE(1, 2, 3)
-    assert(res == 13)
-  }
-}
-
-class MacroCompatCtxTests extends FunSuite {
-  test("No arg method, Tree") {
-    val res = TestCtx.foo
-    assert(res == 23)
-  }
-
-  test("One arg method, Tree") {
-    val res = TestCtx.bar(23)
-    assert(res == "bar")
-  }
-
-  test("Variadic method, Tree") {
-    val res = TestCtx.baz(1, 2, 3)
-    assert(res == 13)
-  }
-
-  test("No arg method, Expr") {
-    val res = TestCtx.fooE
-    assert(res == 23)
-  }
-
-  test("One arg method, Expr") {
-    val res = TestCtx.barE(23)
-    assert(res == "bar")
-  }
-
-  test("Variadic method, Expr") {
-    val res = TestCtx.bazE(1, 2, 3)
+    val res = Test.bazE(1, 2, 3)
     assert(res == 13)
   }
 }
