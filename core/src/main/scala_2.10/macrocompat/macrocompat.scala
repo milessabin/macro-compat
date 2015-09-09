@@ -26,7 +26,7 @@ trait MacroCompat {
 
   def TypeName(s: String) = newTypeName(s)
   def TermName(s: String) = newTermName(s)
-  val typeNames = tpnme
+  def typeNames = tpnme
 
   def freshName = c.fresh
   def freshName(name: String) = c.fresh(name)
