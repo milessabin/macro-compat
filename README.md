@@ -113,6 +113,11 @@ macro-compat is built with SBT 0.13.9 or later.
 The macro-compat project supports the [Typelevel][typelevel] [code of conduct][codeofconduct] and wants all of its
 channels (Gitter, github, etc.) to be welcoming environments for everyone.
 
+## Projects using macro-compat
+
++ [export-hook][export-hook]
++ [simulacrum][simulacrum]
+
 ## Contributors
 
 + Your name here :-)
@@ -122,6 +127,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 [shapeless]: https://github.com/milessabin/shapeless
 [macro-bundles]: http://docs.scala-lang.org/overviews/macros/bundles.html
 [export-hook]: https://github.com/milessabin/export-hook
+[simulacrum]: https://github.com/mpilquist/simulacrum
 [shapeless-gitter]: https://gitter.im/milessabin/shapeless
 [cats-gitter]: https://gitter.im/non/cats
 [typelevel]: http://typelevel.org/
