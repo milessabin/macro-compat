@@ -35,7 +35,7 @@ rather than `Expr[T]`. Both of these allow the signatures of macro implementatio
 more succintly and readably, and it would be a shame to have to give up on them just to remain compatible with Scala
 2.10.x within a single branch.
 
-**macro-compat** provides a forward-port of (parts of) the Scala 2.11.x macro API to 2.10.x and also provides an
+**macro-compat** provides a backport of (parts of) the Scala 2.11.x macro API to 2.10.x and also provides an
 annotation macro which provides support for macro bundles in 2.10.x and `Tree` as the type of macro implementation
 method arguments and results. The intention is that you write macro code as macro bundles, exactly as you would for
 Scala 2.11.x with the exception of a single `@bundle` annotation on the macro bundle class,
@@ -73,7 +73,7 @@ transforms the macro bundle class to an object definition which is compatible wi
 
 This is a proof concept, extracted out of the [export-hook][export-hook] project and massaged into a more or less
 usable form in free moments snatched during ICFP 2015. As such it's adequate for a single branch build of export-hook,
-but will need additions to the forward-port component to be more widely applicable. I hope to have this expanded to
+but will need additions to the backport component to be more widely applicable. I hope to have this expanded to
 cover all the macro API usage in shapeless in the near future and I would be delighted if other projects picked it up
 and extended it to cover their needs as well.
 
