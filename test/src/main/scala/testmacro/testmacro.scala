@@ -42,6 +42,11 @@ class TestMacro(val c: whitebox.Context) {
     val nme = TermName(c.freshName)
     val i = Ident(nme)
 
+    val nme2 = TermName(c.freshName("pfx"))
+    val nme3 = c.freshName(TermName("pfx"))
+
+    typeNames.WILDCARD
+
     q""" 23 """
   }
 
