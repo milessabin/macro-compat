@@ -116,6 +116,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 ## Projects using macro-compat
 
 + [export-hook][export-hook]
++ [Scala Bricks][scala-bricks]
 + [simulacrum][simulacrum]
 
 ## Contributors
@@ -132,5 +133,6 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 [cats-gitter]: https://gitter.im/non/cats
 [typelevel]: http://typelevel.org/
 [codeofconduct]: http://typelevel.org/conduct.html
+[scala-bricks]: https://github.com/InTheNow/scala-bricks
 [sonatype]: https://oss.sonatype.org/index.html#nexus-search;quick~macro-compat
 [ci]: https://travis-ci.org/milessabin/macro-compat
