@@ -61,6 +61,17 @@ trait MacroCompat {
   implicit def mkTypeOps(tpe: Type): TypeOps = new TypeOps(tpe)
   class TypeOps(tpe: Type) {
     def typeParams = tpe.typeSymbol.asType.typeParams
+    def companion = {
+      val compSym = tpe.typeSymbol.companionSymbol
+      if (compSym.isModule) compSym.asModule.moduleClass.asType.toType
+      else NoType
+    }
+    def decls = tpe.declarations
+  }
+
+  implicit def mkMethodSymbolOps(sym: MethodSymbol): MethodSymbolOps = new MethodSymbolOps(sym)
+  class MethodSymbolOps(sym: MethodSymbol) {
+    def paramLists = sym.paramss
   }
 
   def appliedType(tc: Type, ts: List[Type]): Type = c.universe.appliedType(tc, ts)

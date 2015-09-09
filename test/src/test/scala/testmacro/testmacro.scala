@@ -48,4 +48,12 @@ class MacroCompatTests extends FunSuite {
     val res = Test.bazE(1, 2, 3)
     assert(res == 13)
   }
+
+  test("Accessing companion") {
+    val res = Test.comp[Foo]
+    assert(res == "testmacro.Foo.type")
+  }
 }
+
+class Foo
+object Foo
