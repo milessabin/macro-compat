@@ -118,6 +118,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 + [export-hook][export-hook]
 + [Scala Bricks][scala-bricks]
 + [simulacrum][simulacrum]
++ [tfm][tfm]
 
 ## Contributors
 
@@ -129,6 +130,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 [macro-bundles]: http://docs.scala-lang.org/overviews/macros/bundles.html
 [export-hook]: https://github.com/milessabin/export-hook
 [simulacrum]: https://github.com/mpilquist/simulacrum
+[tfm]: https://github.com/adelbertc/tfm
 [shapeless-gitter]: https://gitter.im/milessabin/shapeless
 [cats-gitter]: https://gitter.im/non/cats
 [typelevel]: http://typelevel.org/
