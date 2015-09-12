@@ -62,8 +62,9 @@ trait MacroCompat {
   class TypeOps(tpe: Type) {
     def typeParams = tpe.typeSymbol.asType.typeParams
     def companion = {
-      val compSym = tpe.typeSymbol.companionSymbol
-      if (compSym.isModule) compSym.asModule.moduleClass.asType.toType
+      val typSym = tpe.typeSymbol
+      if (typSym.isModuleClass) tpe.termSymbol.companionSymbol.asType.toType
+      else if (typSym.isClass) typSym.companionSymbol.asModule.moduleClass.asType.toType
       else NoType
     }
     def decls = tpe.declarations
