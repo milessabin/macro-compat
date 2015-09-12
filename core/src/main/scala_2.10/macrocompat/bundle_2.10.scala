@@ -132,6 +132,14 @@ class BundleMacro[C <: Context](val c: C) {
     }
   }
 
+  def stripPositions(tree: Tree): Tree = {
+    if(!tree.isEmpty) {
+      tree.setPos(NoPosition)
+      tree.children.foreach(stripPositions)
+    }
+    tree
+  }
+
   def bundleImpl(annottees: Tree*): Tree = {
     annottees match {
       case List(ClassDef(mods, macroClassNme, tparams, Template(parents, self, body))) =>
@@ -162,6 +170,7 @@ class BundleMacro[C <: Context](val c: C) {
 
         val macroObjectNme = macroClassNme.toTermName
 
+        val res =
         q"""
           class $macroClassNme[$compatTypeNme <: scala.reflect.macros.Context]
             (val $compatNme: $compatTypeNme) extends $macroObjectNme.Stub
@@ -175,6 +184,11 @@ class BundleMacro[C <: Context](val c: C) {
             ..$forwarders
           }
         """
+        val global = c.universe.asInstanceOf[scala.tools.nsc.Global]
+        if(global.settings.Yrangepos.value)
+          stripPositions(res)
+        else
+          res
 
       case other =>
         c.abort(c.enclosingPosition, "Unexpected tree shape.")

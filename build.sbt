@@ -64,6 +64,9 @@ lazy val test = crossProject.crossType(CrossType.Pure)
       "org.scalacheck" %%% "scalacheck" % "1.12.4"   % "test"
     )
   )
+  .settings(
+    scalacOptions += "-Yrangepos"
+  )
   .jsSettings(commonJsSettings:_*)
   .jvmSettings(commonJvmSettings:_*)
 
@@ -79,6 +82,7 @@ addCommandAlias("root", ";project root")
 lazy val scalaMacroDependencies: Seq[Setting[_]] = Seq(
   libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
+    "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
     compilerPlugin("org.scalamacros" % "paradise" % "2.1.0-M5" cross CrossVersion.full)
   ),
   libraryDependencies ++= {
