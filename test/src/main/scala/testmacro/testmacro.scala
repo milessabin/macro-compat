@@ -32,6 +32,8 @@ object Test {
   def bazE(is: Int*): Int = macro TestMacro.bazEImpl
 
   def quux[T](t: T): T = macro TestMacro.quuxImpl[T]
+
+  def comp[T](t: T): String = macro TestMacro.compImpl[T]
 }
 
 @bundle
@@ -70,4 +72,10 @@ class TestMacro(val c: whitebox.Context) {
     val foo = c.typecheck(q""" 1+1 """, c.TYPEmode).tpe
     c.Expr[T](t.tree)
   }
+
+  def compImpl[T: c.WeakTypeTag](t: c.Expr[T]): Tree = {
+    val typ = weakTypeOf[T]
+    q""" ${typ.companion.toString } """
+  }
+
 }
