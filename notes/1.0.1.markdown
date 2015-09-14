@@ -10,7 +10,7 @@ encouragement, in particular to the contributors to 1.0.0: [Adelbert
 Chang][adelbertchang], [Alistair Johnson][inthenow], [Michael
 Pilquist][mpilquist] and [Travis Brown][travisbrown].
 
-[macro-compat]: https://github.com/milessabin/macro-compate
+[macro-compat]: https://github.com/milessabin/macro-compat
 [adelbertchang]: https://twitter.com/adelbertchang
 [inthenow]: https://twitter.com/AlistairUSM
 [mpilquist]: https://twitter.com/mpilquist
