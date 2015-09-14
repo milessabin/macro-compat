@@ -55,8 +55,18 @@ class MacroCompatTests extends FunSuite {
 
     val res2 = Test.comp(Foo)
     assert(res2 == "testmacro.Foo")
+
+    val res3 = Test.comp(new Bar)
+    assert(res3 == "<notype>")
+
+    val res4 = Test.comp(Baz)
+    assert(res4 == "<notype>")
   }
 }
 
 class Foo
 object Foo
+
+class Bar
+
+object Baz
