@@ -72,16 +72,15 @@ transforms the macro bundle class to an object definition which is compatible wi
 
 ## Current status
 
-This is a proof concept, extracted out of the [export-hook][export-hook] project and massaged into a more or less
-usable form in free moments snatched during ICFP 2015. As such it's adequate for a single branch build of export-hook,
-but will need additions to the backport component to be more widely applicable. I hope to have this expanded to
-cover all the macro API usage in shapeless in the near future and I would be delighted if other projects picked it up
-and extended it to cover their needs as well.
+This is a young project, initially extracted out of the [export-hook][export-hook] project and massaged into a more or
+less usable form in free moments snatched during ICFP 2015. Since then a number of generous contributors have made
+additions to the backport component and it is now seeing use in several other projects. I hope to have backport
+coverage expanded sufficiently for all the macro API usage in shapeless in the near future and I would be delighted
+for more projects to pick it up and extended it to cover their needs as well.
 
-## Feedback wanted!
-
-This is a proof of concept ... please create issues here or hop on the [shapeless][shapeless-gitter] or
-[cats][cats-gitter] gitter channels and let us know what you think.
+If you would like to see or contribute particuluar extensions to the backport, please create issues here or hop on the
+[gitter channel][macrocompat-gitter]. Discussion is also welcome on the [shapeless][shapeless-gitter] and
+[cats][cats-gitter] gitter channels ... please let us know what you think.
 
 ## Using macro-compat
 
@@ -140,6 +139,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 [tfm]: https://github.com/adelbertc/tfm
 [shapeless-gitter]: https://gitter.im/milessabin/shapeless
 [cats-gitter]: https://gitter.im/non/cats
+[macrocompat-gitter]: https://gitter.im/milessabin/macro-compat
 [typelevel]: http://typelevel.org/
 [codeofconduct]: http://typelevel.org/conduct.html
 [scala-bricks]: https://github.com/InTheNow/scala-bricks
