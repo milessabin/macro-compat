@@ -5,6 +5,7 @@ allows you to compile macros with Scala 2.10.x which are written to the Scala 2.
 macros can be written just once, for the current API, and still be portable to earlier Scala releases.
 
 [![Build Status](https://api.travis-ci.org/milessabin/macro-compat.png?branch=master)](https://travis-ci.org/milessabin/macro-compat)
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/milessabin/macro-compat)
 
 ## Why you should use macro-compat
 
