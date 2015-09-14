@@ -7,9 +7,7 @@ Find the project online,
 - CI: [https://travis-ci.org/milessabin/macro-compat][ci]
 - Gitter: [https://gitter.im/milessabin/macro-compat][gitter]
 
-Some articles on the techniques used have appeared [here][blog]
-
-shapeless is an Open Source project under the Apache License v2.
+macro-compat is an Open Source project under the Apache License v2.
 
 [source]: https://github.com/milessabin/macro-compat
 [ci]: https://travis-ci.org/milessabin/macro-compat
