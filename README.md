@@ -123,6 +123,12 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 
 ## Contributors
 
++ Adelbert Chang <adelbertc@gmail.com> [@adelbertchang](https://twitter.com/adelbertchang)
++ Alistair Johnson <alistair.johnson@johnsonusm.com> [@AlistairUSM](https://twitter.com/AlistairUSM)
++ Michael Pilquist <mpilquist@gmail.com> [@mpilquist](https://twitter.com/mpilquist)
++ Miles Sabin <miles@milessabin.com> [@milessabin](https://twitter.com/milessabin)
++ Philip Wills <philip.wills@guardian.co.uk> [@philwills](https://twitter.com/philwills)
++ Travis Brown <tbrown@twitter.com> [@travisbrown](https://twitter.com/travisbrown)
 + Your name here :-)
 
 [macro-paradise]: http://docs.scala-lang.org/overviews/macros/paradise.html
