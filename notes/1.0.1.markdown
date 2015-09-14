@@ -1,0 +1,19 @@
+This is the final release of [macro-compat-1.0.1][macro-compat].
+
+These release notes provide a summary of changes since shapeless 1.0.0.
+
+* The `companion` method on `Type` and `paramLists` method on `MethodSymbol`.
+  were contribued by [Phil Wills][philwills].
+
+Many thanks to everyone who has contributed ideas, enthusiasm and
+encouragement, in particular to the contributors to 1.0.0: [Adelbert
+Chang][adelbertchang], [Alistair Johnson][inthenow], [Michael
+Pilquist][mpilquist] and [Travis Brown][travisbrown].
+
+[macro-compat]: https://github.com/milessabin/macro-compate
+[adelbertchang]: https://twitter.com/adelbertchang
+[inthenow]: https://twitter.com/AlistairUSM
+[mpilquist]: https://twitter.com/mpilquist
+[philwills]: https://twitter.com/philwills
+[travisbrown]: https://twitter.com/travisbrown
+
