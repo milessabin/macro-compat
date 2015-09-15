@@ -90,4 +90,7 @@ class TestMacro(val c: whitebox.Context) extends TestUtil {
 
   def useUtil: Tree =
     util(typeOf[Int])
+
+  def const: Tree =
+    TypeTree(internal.constantType(Constant(23)))
 }

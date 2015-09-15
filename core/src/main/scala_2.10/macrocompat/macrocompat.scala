@@ -81,4 +81,8 @@ trait MacroCompat {
   def appliedType(tc: Type, ts: Type*): Type = c.universe.appliedType(tc, ts.toList)
 
   def showCode(t: Tree): String = show(t)
+
+  def internal: this.type = this
+
+  def constantType(c: Constant): ConstantType = ConstantType(c)
 }
