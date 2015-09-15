@@ -140,8 +140,29 @@ class BundleMacro[C <: Context](val c: C) {
     tree
   }
 
+  def fixPositions(tree: Tree): Tree = {
+    val global = c.universe.asInstanceOf[scala.tools.nsc.Global]
+    if(global.settings.Yrangepos.value)
+      stripPositions(tree)
+    else
+      tree
+  }
+
   def bundleImpl(annottees: Tree*): Tree = {
     annottees match {
+      case List(ClassDef(mods, macroClassNme, tparams, Template(parents, self, body)))
+        if mods.hasFlag(ABSTRACT) =>
+        val newParents =
+          tq"_root_.macrocompat.MacroCompat" ::
+          parents.filter {
+            case tq"scala.AnyRef" => false
+            case _ => true
+          }
+        val res =
+        ClassDef(mods, macroClassNme, tparams,
+          Template(newParents, self, body))
+        fixPositions(res)
+
       case List(ClassDef(mods, macroClassNme, tparams, Template(parents, self, body))) =>
         val defns = body collect {
           case MacroImpl(d: DefDef) => d
@@ -176,7 +197,7 @@ class BundleMacro[C <: Context](val c: C) {
             (val $compatNme: $compatTypeNme) extends $macroObjectNme.Stub
 
           object $macroObjectNme {
-            trait Stub extends _root_.macrocompat.MacroCompat {
+            trait Stub extends ..$parents with _root_.macrocompat.MacroCompat {
               ..$alias
               ..$macroDefns
             }
@@ -184,11 +205,7 @@ class BundleMacro[C <: Context](val c: C) {
             ..$forwarders
           }
         """
-        val global = c.universe.asInstanceOf[scala.tools.nsc.Global]
-        if(global.settings.Yrangepos.value)
-          stripPositions(res)
-        else
-          res
+        fixPositions(res)
 
       case other =>
         c.abort(c.enclosingPosition, "Unexpected tree shape.")

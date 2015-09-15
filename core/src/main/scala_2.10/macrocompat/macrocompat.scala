@@ -82,4 +82,3 @@ trait MacroCompat {
 
   def showCode(t: Tree): String = show(t)
 }
-

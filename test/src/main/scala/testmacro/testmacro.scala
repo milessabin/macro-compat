@@ -37,7 +37,17 @@ object Test {
 }
 
 @bundle
-class TestMacro(val c: whitebox.Context) {
+trait TestUtil {
+  val c: whitebox.Context
+  import c.universe._
+
+  def util(t: Type): Tree = {
+    q""" () """
+  }
+}
+
+@bundle
+class TestMacro(val c: whitebox.Context) extends TestUtil {
   import c.universe._
 
   def fooImpl: Tree = {
@@ -78,4 +88,6 @@ class TestMacro(val c: whitebox.Context) {
     q""" ${typ.companion.toString } """
   }
 
+  def useUtil: Tree =
+    util(typeOf[Int])
 }
