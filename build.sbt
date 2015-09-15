@@ -64,9 +64,6 @@ lazy val test = crossProject.crossType(CrossType.Pure)
       "org.scalacheck" %%% "scalacheck" % "1.12.4"   % "test"
     )
   )
-  .settings(
-    scalacOptions += "-Yrangepos"
-  )
   .jsSettings(commonJsSettings:_*)
   .jvmSettings(commonJvmSettings:_*)
 
