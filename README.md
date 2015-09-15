@@ -118,6 +118,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 ## Projects using macro-compat
 
 + [export-hook][export-hook]
++ [expressier][expressier]
 + [Scala Bricks][scala-bricks]
 + [simulacrum][simulacrum]
 + [tfm][tfm]
@@ -137,6 +138,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 [shapeless]: https://github.com/milessabin/shapeless
 [macro-bundles]: http://docs.scala-lang.org/overviews/macros/bundles.html
 [export-hook]: https://github.com/milessabin/export-hook
+[expressier]: https://github.com/travisbrown/expressier
 [simulacrum]: https://github.com/mpilquist/simulacrum
 [tfm]: https://github.com/adelbertc/tfm
 [shapeless-gitter]: https://gitter.im/milessabin/shapeless
