@@ -1,0 +1,20 @@
+This is the final release of [macro-compat-1.0.2][macro-compat].
+
+These release notes provide a summary of changes since macro-compat 1.0.1.
+
+* There are multiple problems with `RangePositions` in Scala 2.10.5. As
+  as a workaround these are now stripped from user macro result trees if
+  the `-Yrangepos` compiler flag is enabled.
+
+* Bundle classes can now have parent traits/abstract classes.
+
+* Support for `Context#internal.constantType` has been added.
+
+* [Phil Wills][philwills] fixed a bug in the `companion` method on
+  `Type`.
+
+Many thanks to everyone who has contributed ideas, enthusiasm and
+encouragement.
+
+[macro-compat]: https://github.com/milessabin/macro-compat
+[philwills]: https://twitter.com/philwills
