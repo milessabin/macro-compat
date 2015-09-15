@@ -101,8 +101,14 @@ class BundleMacro[C <: Context](val c: C) {
     val call = q""" $instNme.${name.toTermName}[..$targs](...$cargss) """
     val (ctpt, wrap) =
       tpt match {
-        case ExprE(tpt) => (tq""" $ctxNme.Expr[$tpt] """, call)
-        case TreeE(tpt) => (tq""" $ctxNme.Expr[Nothing] """, q""" $ctxNme.Expr[Nothing]($call) """)
+        case ExprE(tpt) => (
+          tq""" $ctxNme.Expr[$tpt] """,
+           q""" $ctxNme.Expr[$tpt](_root_.macrocompat.BundleMacro.fixPositions[$ctxNme.type]($ctxNme)($call.tree)) """
+        )
+        case TreeE(tpt) => (
+          tq""" $ctxNme.Expr[Nothing] """,
+           q""" $ctxNme.Expr[Nothing](_root_.macrocompat.BundleMacro.fixPositions[$ctxNme.type]($ctxNme)($call)) """
+         )
       }
 
     val crhs =
@@ -218,4 +224,7 @@ object BundleMacro {
 
   def bundleImpl(c: Context)(annottees: c.Expr[Any]*): c.Expr[Any] =
     c.Expr[Any](inst(c).bundleImpl(annottees.map(_.tree): _*))
+
+  def fixPositions[C <: Context](c: C)(tree: c.Tree): c.Tree =
+    inst(c).fixPositions(tree)
 }
