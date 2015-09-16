@@ -119,10 +119,10 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 
 + [export-hook][export-hook]
 + [expressier][expressier]
++ [marley][marley]
 + [Scala Bricks][scala-bricks]
 + [simulacrum][simulacrum]
 + [tfm][tfm]
-+ [marley][marley]
 
 ## Contributors
 
