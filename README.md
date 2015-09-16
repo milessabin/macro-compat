@@ -122,6 +122,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 + [Scala Bricks][scala-bricks]
 + [simulacrum][simulacrum]
 + [tfm][tfm]
++ [marley][marley]
 
 ## Contributors
 
@@ -129,7 +130,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 + Alistair Johnson <alistair.johnson@johnsonusm.com> [@AlistairUSM](https://twitter.com/AlistairUSM)
 + Michael Pilquist <mpilquist@gmail.com> [@mpilquist](https://twitter.com/mpilquist)
 + Miles Sabin <miles@milessabin.com> [@milessabin](https://twitter.com/milessabin)
-+ Philip Wills <philip.wills@guardian.co.uk> [@philwills](https://twitter.com/philwills)
++ Philip Wills <otherphil@gmail.com> [@philwills](https://twitter.com/philwills)
 + Travis Brown <tbrown@twitter.com> [@travisbrown](https://twitter.com/travisbrown)
 + Your name here :-)
 
@@ -141,6 +142,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 [expressier]: https://github.com/travisbrown/expressier
 [simulacrum]: https://github.com/mpilquist/simulacrum
 [tfm]: https://github.com/adelbertc/tfm
+[marley]: https://github.com/guardian/marley
 [shapeless-gitter]: https://gitter.im/milessabin/shapeless
 [cats-gitter]: https://gitter.im/non/cats
 [macrocompat-gitter]: https://gitter.im/milessabin/macro-compat
