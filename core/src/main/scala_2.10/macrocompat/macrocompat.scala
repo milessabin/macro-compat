@@ -58,6 +58,8 @@ trait MacroCompat {
         c.typeCheck(term, pt, silent, withImplicitViewsDisabled, withMacrosDisabled)
     }
 
+  def untypecheck(tree: Tree): Tree = c.resetLocalAttrs(tree)
+
   implicit def mkTypeOps(tpe: Type): TypeOps = new TypeOps(tpe)
   class TypeOps(tpe: Type) {
     def typeParams = tpe.typeSymbol.asType.typeParams
@@ -75,6 +77,10 @@ trait MacroCompat {
   implicit def mkMethodSymbolOps(sym: MethodSymbol): MethodSymbolOps = new MethodSymbolOps(sym)
   class MethodSymbolOps(sym: MethodSymbol) {
     def paramLists = sym.paramss
+  }
+
+  implicit class SymbolOps(sym: Symbol) {
+    def companion = sym.companionSymbol
   }
 
   def appliedType(tc: Type, ts: List[Type]): Type = c.universe.appliedType(tc, ts)
