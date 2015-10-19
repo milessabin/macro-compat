@@ -80,7 +80,7 @@ trait MacroCompat {
   }
 
   implicit class SymbolOps(sym: Symbol) {
-    def companion = sym.companionSymbol
+    def companion: Symbol = sym.companionSymbol
   }
 
   def appliedType(tc: Type, ts: List[Type]): Type = c.universe.appliedType(tc, ts)
