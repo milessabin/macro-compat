@@ -49,6 +49,20 @@ class MacroCompatTests extends FunSuite {
     assert(res == 13)
   }
 
+  test("symbolOf") {
+    val res = Test.symbolOf(new Foo)
+    assert(res == "class Foo")
+
+    val res2 = Test.symbolOf(Foo)
+    assert(res2 == "object Foo")
+
+    val res3 = Test.symbolOf(new Bar)
+    assert(res3 == "class Bar")
+
+    val res4 = Test.symbolOf(Baz)
+    assert(res4 == "object Baz")
+  }
+
   test("Accessing companion") {
     val res = Test.comp(new Foo)
     assert(res == "testmacro.Foo.type")
@@ -61,6 +75,31 @@ class MacroCompatTests extends FunSuite {
 
     val res4 = Test.comp(Baz)
     assert(res4 == "<notype>")
+  }
+
+  test("Accessing companion symbol") {
+    val res = Test.compSym(new Foo)
+    assert(res == "object Foo")
+
+    val res2 = Test.compSym(Foo)
+    assert(res2 == "class Foo")
+
+    val res3 = Test.compSym(new Bar)
+    assert(res3 == "<none>")
+
+    val res4 = Test.compSym(Baz)
+    assert(res4 == "<none>")
+  }
+
+  test("Companion reference") {
+    val res: Foo.type = Test.ref(new Foo)
+    assert((res: Foo.type) eq Foo)
+
+  }
+
+  test("Untypecheck") {
+    val res = Test.untypecheck(23)
+    assert((res: Int) == 23)
   }
 }
 

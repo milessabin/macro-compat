@@ -34,6 +34,14 @@ object Test {
   def quux[T](t: T): T = macro TestMacro.quuxImpl[T]
 
   def comp[T](t: T): String = macro TestMacro.compImpl[T]
+
+  def symbolOf[T](t: T): String = macro TestMacro.symbolOfImpl[T]
+
+  def compSym[T](t: T): String = macro TestMacro.compSymImpl[T]
+
+  def ref[T](t: T): AnyRef = macro TestMacro.refImpl[T]
+
+  def untypecheck[T](t: T): T = macro TestMacro.untypecheckImpl[T]
 }
 
 @bundle
@@ -51,8 +59,11 @@ class TestMacro(val c: whitebox.Context) extends TestUtil {
   import c.universe._
 
   def fooImpl: Tree = {
-    val nme = TermName(c.freshName)
-    val i = Ident(nme)
+    val nme0 = TermName(c.freshName)
+    val TermName(str0) = nme0
+    val nme1 = TypeName(c.freshName)
+    val TypeName(str1) = nme1
+    val i = Ident(nme0)
 
     val nme2 = TermName(c.freshName("pfx"))
     val nme3 = c.freshName(TermName("pfx"))
@@ -86,6 +97,27 @@ class TestMacro(val c: whitebox.Context) extends TestUtil {
   def compImpl[T: c.WeakTypeTag](t: c.Expr[T]): Tree = {
     val typ = weakTypeOf[T]
     q""" ${typ.companion.toString } """
+  }
+
+  def symbolOfImpl[T: c.WeakTypeTag](t: c.Expr[T]): Tree = {
+    val sym = symbolOf[T]
+    q""" ${sym.toString } """
+  }
+
+  def compSymImpl[T: c.WeakTypeTag](t: c.Expr[T]): Tree = {
+    val sym = symbolOf[T]
+    q""" ${sym.companion.toString } """
+  }
+
+  def refImpl[T: c.WeakTypeTag](t: c.Expr[T]): Tree = {
+    val sym = symbolOf[T]
+    val ref = c.internal.gen.mkAttributedRef(sym.companion)
+    q""" $ref """
+  }
+
+  def untypecheckImpl[T: c.WeakTypeTag](t: c.Expr[T]): Tree = {
+    val tree = c.untypecheck(t.tree)
+    q""" $tree """
   }
 
   def useUtil: Tree =

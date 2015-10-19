@@ -24,8 +24,34 @@ trait MacroCompat {
   val c: Context
   import c.universe._
 
-  def TypeName(s: String) = newTypeName(s)
-  def TermName(s: String) = newTermName(s)
+  object GlobalConversions {
+    val global = c.universe.asInstanceOf[scala.tools.nsc.Global]
+
+    implicit def globalType(tpe: Type): global.Type = tpe.asInstanceOf[global.Type]
+    implicit def globalSymbol(sym: Symbol): global.Symbol = sym.asInstanceOf[global.Symbol]
+    implicit def globalTypeSymbol(sym: TypeSymbol): global.TypeSymbol = sym.asInstanceOf[global.TypeSymbol]
+    implicit def globalTree(tree: Tree): global.Tree = tree.asInstanceOf[global.Tree]
+
+    implicit def macroType(tpe: global.Type): Type = tpe.asInstanceOf[Type]
+    implicit def macroSymbol(sym: global.Symbol): Symbol = sym.asInstanceOf[Symbol]
+    implicit def macroTypeSymbol(sym: global.TypeSymbol): TypeSymbol = sym.asInstanceOf[TypeSymbol]
+    implicit def macroTree(tree: global.Tree): Tree = tree.asInstanceOf[Tree]
+  }
+
+  import GlobalConversions._
+
+  def symbolOf[T: WeakTypeTag]: TypeSymbol =
+    weakTypeOf[T].typeSymbolDirect.asType
+
+  object TypeName {
+    def apply(s: String) = newTypeName(s)
+    def unapply(name: TypeName): Option[String] = Some(name.toString)
+  }
+
+  object TermName {
+    def apply(s: String) = newTermName(s)
+    def unapply(name: TermName): Option[String] = Some(name.toString)
+  }
 
   val termNames = nme
   val typeNames = tpnme
@@ -60,27 +86,31 @@ trait MacroCompat {
 
   def untypecheck(tree: Tree): Tree = c.resetLocalAttrs(tree)
 
-  implicit def mkTypeOps(tpe: Type): TypeOps = new TypeOps(tpe)
-  class TypeOps(tpe: Type) {
+  implicit class TypeOps(tpe: Type) {
     def typeParams = tpe.typeSymbol.asType.typeParams
-    def companion = {
-      val typSym = tpe.typeSymbol
-      if (typSym.isModuleClass && tpe.termSymbol.companionSymbol.isType)
-        tpe.termSymbol.companionSymbol.asType.toType
-      else if (typSym.isClass && !typSym.isModuleClass && typSym.companionSymbol.isModule)
-        typSym.companionSymbol.asModule.moduleClass.asType.toType
+
+    def companion: Type = {
+      val sym = tpe.typeSymbolDirect
+      if (sym.isModule && !sym.hasPackageFlag) sym.companionSymbol.tpe
+      else if (sym.isModuleClass && !sym.isPackageClass) sym.sourceModule.companionSymbol.tpe
+      else if (sym.isClass && !sym.isModuleClass && !sym.isPackageClass) sym.companionSymbol.info
       else NoType
     }
+
     def decls = tpe.declarations
   }
 
-  implicit def mkMethodSymbolOps(sym: MethodSymbol): MethodSymbolOps = new MethodSymbolOps(sym)
-  class MethodSymbolOps(sym: MethodSymbol) {
+  implicit class MethodSymbolOps(sym: MethodSymbol) {
     def paramLists = sym.paramss
   }
 
   implicit class SymbolOps(sym: Symbol) {
-    def companion: Symbol = sym.companionSymbol
+    def companion: Symbol = {
+      if (sym.isModule && !sym.hasPackageFlag) sym.companionSymbol
+      else if (sym.isModuleClass && !sym.isPackageClass) sym.sourceModule.companionSymbol
+      else if (sym.isClass && !sym.isModuleClass && !sym.isPackageClass) sym.companionSymbol
+      else NoSymbol
+    }
   }
 
   def appliedType(tc: Type, ts: List[Type]): Type = c.universe.appliedType(tc, ts)
@@ -88,7 +118,15 @@ trait MacroCompat {
 
   def showCode(t: Tree): String = show(t)
 
-  def internal: this.type = this
+  object internal {
+    def constantType(c: Constant): ConstantType = ConstantType(c)
 
-  def constantType(c: Constant): ConstantType = ConstantType(c)
+    object gen {
+      def mkAttributedRef(sym: Symbol): Tree =
+        global.gen.mkAttributedRef(sym)
+
+      def mkAttributedRef(pre: Type, sym: Symbol): Tree =
+        global.gen.mkAttributedRef(pre, sym)
+    }
+  }
 }
