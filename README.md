@@ -120,6 +120,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 + [export-hook][export-hook]
 + [expressier][expressier]
 + [marley][marley]
++ [Monocle][monocle]
 + [Scala Bricks][scala-bricks]
 + [simulacrum][simulacrum]
 + [tfm][tfm]
@@ -143,6 +144,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 [simulacrum]: https://github.com/mpilquist/simulacrum
 [tfm]: https://github.com/adelbertc/tfm
 [marley]: https://github.com/guardian/marley
+[monocle]: https://github.com/julien-truffaut/Monocle
 [shapeless-gitter]: https://gitter.im/milessabin/shapeless
 [cats-gitter]: https://gitter.im/non/cats
 [macrocompat-gitter]: https://gitter.im/milessabin/macro-compat
