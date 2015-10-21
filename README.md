@@ -131,6 +131,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 + Alistair Johnson <alistair.johnson@johnsonusm.com> [@AlistairUSM](https://twitter.com/AlistairUSM)
 + Michael Pilquist <mpilquist@gmail.com> [@mpilquist](https://twitter.com/mpilquist)
 + Miles Sabin <miles@milessabin.com> [@milessabin](https://twitter.com/milessabin)
++ Naoki Aoyama <aoiro.aoino@gmail.com> [@AoiroAoino](https://twitter.com/AoiroAoino)
 + Philip Wills <otherphil@gmail.com> [@philwills](https://twitter.com/philwills)
 + Travis Brown <tbrown@twitter.com> [@travisbrown](https://twitter.com/travisbrown)
 + Your name here :-)
