@@ -5,7 +5,7 @@ import ReleaseTransformations._
 lazy val buildSettings = Seq(
   organization := "org.typelevel",
   scalaVersion := "2.11.7",
-  crossScalaVersions := Seq("2.10.5", "2.11.7")
+  crossScalaVersions := Seq("2.10.6", "2.11.7")
 )
 
 lazy val commonSettings = Seq(
@@ -89,7 +89,7 @@ lazy val scalaMacroDependencies: Seq[Setting[_]] = Seq(
       // in Scala 2.10, quasiquotes are provided by macro paradise
       case Some((2, 10)) =>
         Seq(
-              "org.scalamacros" %% "quasiquotes" % "2.0.0" cross CrossVersion.binary
+              "org.scalamacros" %% "quasiquotes" % "2.1.0-M5" cross CrossVersion.binary
         )
     }
   }
