@@ -117,11 +117,11 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 
 ## Projects using macro-compat
 
++ [catalysts][catalysts]
 + [export-hook][export-hook]
 + [expressier][expressier]
 + [marley][marley]
 + [Monocle][monocle]
-+ [Catalysts][catalysts]
 + [simulacrum][simulacrum]
 + [tfm][tfm]
 
