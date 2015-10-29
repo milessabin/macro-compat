@@ -97,6 +97,8 @@ trait MacroCompat {
       else NoType
     }
 
+    def decl(nme: Name): Symbol = tpe.declaration(nme)
+
     def decls = tpe.declarations
   }
 
@@ -120,6 +122,12 @@ trait MacroCompat {
 
   object internal {
     def constantType(c: Constant): ConstantType = ConstantType(c)
+
+    def enclosingOwner: Symbol = {
+      val internalContext = c.asInstanceOf[scala.reflect.macros.runtime.Context]
+      val internalOwner = internalContext.callsiteTyper.context.owner
+      internalOwner.asInstanceOf[Symbol]
+    }
 
     object gen {
       def mkAttributedRef(sym: Symbol): Tree =
