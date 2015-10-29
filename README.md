@@ -121,7 +121,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 + [expressier][expressier]
 + [marley][marley]
 + [Monocle][monocle]
-+ [Scala Bricks][scala-bricks]
++ [Catalysts][catalysts]
 + [simulacrum][simulacrum]
 + [tfm][tfm]
 
@@ -151,6 +151,6 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 [macrocompat-gitter]: https://gitter.im/milessabin/macro-compat
 [typelevel]: http://typelevel.org/
 [codeofconduct]: http://typelevel.org/conduct.html
-[scala-bricks]: https://github.com/InTheNow/scala-bricks
+[catalysts]: https://github.com/InTheNow/catalysts
 [sonatype]: https://oss.sonatype.org/index.html#nexus-search;quick~macro-compat
 [ci]: https://travis-ci.org/milessabin/macro-compat
