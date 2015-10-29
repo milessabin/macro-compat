@@ -16,6 +16,20 @@
 
 package macrocompat
 
-import scala.annotation.Annotation
+import scala.language.experimental.macros
 
-class bundle extends Annotation
+import scala.annotation.StaticAnnotation
+
+import scala.reflect.macros.blackbox
+
+class bundle extends StaticAnnotation {
+  def macroTransform(annottees: Any*): Any = macro BundleMacro.bundleImpl
+}
+
+class BundleMacro(val c: blackbox.Context) {
+  import c.universe._
+
+  def bundleImpl(annottees: Tree*): Tree = {
+    q""" ..$annottees """
+  }
+}
