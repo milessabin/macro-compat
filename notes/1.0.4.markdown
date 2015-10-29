@@ -2,7 +2,7 @@ This is the final release of [macro-compat-1.0.4][macro-compat].
 
 These release notes provide a summary of changes since macro-compat 1.0.3.
 
-* Added Symbol#isConstructor; whitespace.
+* Added Symbol#isConstructor.
 
 * Added Symbol#info and infoIn.
 
