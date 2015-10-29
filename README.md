@@ -101,7 +101,7 @@ Builds are available for Scala 2.11.x and 2.10.x for Scala JDK and Scala.js.
 
 ```scala
 libraryDependencies ++= Seq(
-  "org.typelevel" %% "macro-compat" % "1.0.3",
+  "org.typelevel" %% "macro-compat" % "1.0.4",
   compilerPlugin("org.scalamacros" % "paradise" % "2.1.0-M5" cross CrossVersion.full)
 )
 ```
