@@ -113,6 +113,9 @@ trait MacroCompat {
       else if (sym.isClass && !sym.isModuleClass && !sym.isPackageClass) sym.companionSymbol
       else NoSymbol
     }
+
+    def info: Type = sym.typeSignature
+    def infoIn(site: Type): Type = sym.typeSignatureIn(site)
   }
 
   def appliedType(tc: Type, ts: List[Type]): Type = c.universe.appliedType(tc, ts)
