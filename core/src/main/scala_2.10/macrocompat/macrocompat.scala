@@ -116,6 +116,8 @@ trait MacroCompat {
 
     def info: Type = sym.typeSignature
     def infoIn(site: Type): Type = sym.typeSignatureIn(site)
+
+    def isConstructor: Boolean = sym.isMethod &&sym.asMethod.isConstructor
   }
 
   def appliedType(tc: Type, ts: List[Type]): Type = c.universe.appliedType(tc, ts)
