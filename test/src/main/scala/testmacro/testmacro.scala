@@ -44,6 +44,8 @@ object Test {
   def untypecheck[T](t: T): T = macro TestMacro.untypecheckImpl[T]
 
   def ensureOneTypeArg[T]: Unit = macro TestMacro.ensureOneTypeArgImpl[T]
+
+  def freshName: String = macro TestMacro.freshNameImpl
 }
 
 @bundle
@@ -130,6 +132,11 @@ class TestMacro(val c: whitebox.Context) extends TestUtil {
         s"Cannot dealias ${weakTypeOf[T]} to a type with one type argument"
       )
     }
+
+  def freshNameImpl: Tree = {
+    val name = c.freshName().toString
+    q" $name "
+  }
 
   def useUtil: Tree =
     util(typeOf[Int])

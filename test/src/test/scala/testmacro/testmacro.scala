@@ -106,6 +106,10 @@ class MacroCompatTests extends FunSuite {
     type T = List[Int]
     Test.ensureOneTypeArg[T]
   }
+
+  test("Fresh name") {
+    Test.freshName
+  }
 }
 
 class Foo
