@@ -42,6 +42,8 @@ object Test {
   def ref[T](t: T): AnyRef = macro TestMacro.refImpl[T]
 
   def untypecheck[T](t: T): T = macro TestMacro.untypecheckImpl[T]
+
+  def ensureOneTypeArg[T]: Unit = macro TestMacro.ensureOneTypeArgImpl[T]
 }
 
 @bundle
@@ -119,6 +121,15 @@ class TestMacro(val c: whitebox.Context) extends TestUtil {
     val tree = c.untypecheck(t.tree)
     q""" $tree """
   }
+
+  def ensureOneTypeArgImpl[T: c.WeakTypeTag]: Tree =
+    weakTypeOf[T].dealias match {
+      case TypeRef(_, _, List(_)) => q" () "
+      case _ => c.abort(
+        c.enclosingPosition,
+        s"Cannot dealias ${weakTypeOf[T]} to a type with one type argument"
+      )
+    }
 
   def useUtil: Tree =
     util(typeOf[Int])

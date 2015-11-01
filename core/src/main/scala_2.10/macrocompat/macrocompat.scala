@@ -100,6 +100,8 @@ trait MacroCompat {
     def decl(nme: Name): Symbol = tpe.declaration(nme)
 
     def decls = tpe.declarations
+
+    def dealias: Type = tpe.normalize
   }
 
   implicit class MethodSymbolOps(sym: MethodSymbol) {

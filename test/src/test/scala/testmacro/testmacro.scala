@@ -101,6 +101,11 @@ class MacroCompatTests extends FunSuite {
     val res = Test.untypecheck(23)
     assert((res: Int) == 23)
   }
+
+  test("Dealias types") {
+    type T = List[Int]
+    Test.ensureOneTypeArg[T]
+  }
 }
 
 class Foo
