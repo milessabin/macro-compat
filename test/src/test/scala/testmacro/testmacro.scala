@@ -110,6 +110,15 @@ class MacroCompatTests extends FunSuite {
   test("Fresh name") {
     Test.freshName
   }
+
+  test("Annotation") {
+    class Annotation extends scala.annotation.StaticAnnotation
+    @Annotation trait T
+
+    val annTpe = Test.AnnotationType[T]
+    val a = new Annotation
+    val a0: annTpe.Ann = a
+  }
 }
 
 class Foo

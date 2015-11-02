@@ -31,11 +31,13 @@ trait MacroCompat {
     implicit def globalSymbol(sym: Symbol): global.Symbol = sym.asInstanceOf[global.Symbol]
     implicit def globalTypeSymbol(sym: TypeSymbol): global.TypeSymbol = sym.asInstanceOf[global.TypeSymbol]
     implicit def globalTree(tree: Tree): global.Tree = tree.asInstanceOf[global.Tree]
+    implicit def globalAnnotation(ann: Annotation): global.Annotation = ann.asInstanceOf[global.Annotation]
 
     implicit def macroType(tpe: global.Type): Type = tpe.asInstanceOf[Type]
     implicit def macroSymbol(sym: global.Symbol): Symbol = sym.asInstanceOf[Symbol]
     implicit def macroTypeSymbol(sym: global.TypeSymbol): TypeSymbol = sym.asInstanceOf[TypeSymbol]
     implicit def macroTree(tree: global.Tree): Tree = tree.asInstanceOf[Tree]
+    implicit def macroAnnotation(ann: global.Annotation): Annotation = ann.asInstanceOf[Annotation]
   }
 
   import GlobalConversions._
@@ -120,6 +122,50 @@ trait MacroCompat {
     def infoIn(site: Type): Type = sym.typeSignatureIn(site)
 
     def isConstructor: Boolean = sym.isMethod &&sym.asMethod.isConstructor
+  }
+
+  implicit class AnnotationOps(ann: Annotation) {
+    // cut-n-pasted (with the comments) from
+    // https://github.com/scala/scala/blob/v2.11.7/src/reflect/scala/reflect/internal/AnnotationInfos.scala#L348-L382
+    private def annotationToTree(ann: global.Annotation): Tree = {
+      import global._, definitions._
+
+      def reverseEngineerArgs(): List[Tree] = {
+        def reverseEngineerArg(jarg: ClassfileAnnotArg): Tree = jarg match {
+          case LiteralAnnotArg(const) =>
+            val tpe = if (const.tag == UnitTag) UnitTpe else ConstantType(const)
+            Literal(const) setType tpe
+          case ArrayAnnotArg(jargs) =>
+            val args = jargs map reverseEngineerArg
+            // TODO: I think it would be a good idea to typecheck Java annotations using a more traditional algorithm
+            // sure, we can't typecheck them as is using the `new jann(foo = bar)` syntax (because jann is going to be an @interface)
+            // however we can do better than `typedAnnotation` by desugaring the aforementioned expression to
+            // something like `new jann() { override def annotatedType() = ...; override def foo = bar }`
+            // and then using the results of that typecheck to produce a Java-compatible classfile entry
+            // in that case we're going to have correctly typed Array.apply calls, however that's 2.12 territory
+            // and for 2.11 exposing an untyped call to ArrayModule should suffice
+            Apply(Ident(ArrayModule), args.toList)
+          case NestedAnnotArg(ann: Annotation) =>
+            annotationToTree(ann)
+          case _ =>
+            EmptyTree
+        }
+        def reverseEngineerArgs(jargs: List[(Name, ClassfileAnnotArg)]): List[Tree] = jargs match {
+          case (name, jarg) :: rest => AssignOrNamedArg(Ident(name), reverseEngineerArg(jarg)) :: reverseEngineerArgs(rest)
+          case Nil => Nil
+        }
+        if (ann.javaArgs.isEmpty) ann.scalaArgs
+        else reverseEngineerArgs(ann.javaArgs.toList)
+      }
+
+      // TODO: at the moment, constructor selection is unattributed, because AnnotationInfos lack necessary information
+      // later on, in 2.12, for every annotation we could save an entire tree instead of just bits and pieces
+      // but for 2.11 the current situation will have to do
+      val ctorSelection = Select(New(TypeTree(ann.atp)), nme.CONSTRUCTOR)
+      Apply(ctorSelection, reverseEngineerArgs()) setType ann.atp
+    }
+
+    def tree: Tree = annotationToTree(ann)
   }
 
   def appliedType(tc: Type, ts: List[Type]): Type = c.universe.appliedType(tc, ts)

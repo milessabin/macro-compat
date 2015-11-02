@@ -46,6 +46,16 @@ object Test {
   def ensureOneTypeArg[T]: Unit = macro TestMacro.ensureOneTypeArgImpl[T]
 
   def freshName: String = macro TestMacro.freshNameImpl
+
+  trait AnnotationType[T] {
+    type Ann
+  }
+  object AnnotationType {
+    def apply[T](implicit annTpe: AnnotationType[T]): Aux[T, annTpe.Ann] = annTpe
+    type Aux[T, Ann0] = AnnotationType[T] { type Ann = Ann0 }
+    implicit def materialize[T, Ann]: Aux[T, Ann] = macro TestMacro.annotationTypeImpl[T, Ann]
+    def instance[T, Ann0]: Aux[T, Ann0] = new AnnotationType[T] { type Ann = Ann0 }
+  }
 }
 
 @bundle
@@ -136,6 +146,21 @@ class TestMacro(val c: whitebox.Context) extends TestUtil {
   def freshNameImpl: Tree = {
     val name = c.freshName().toString
     q" $name "
+  }
+
+  def annotationTypeImpl[T: c.WeakTypeTag, R: c.WeakTypeTag]: Tree = {
+    val tpe = weakTypeOf[T]
+    val annotations = tpe.dealias.typeSymbol.annotations
+
+    annotations.map { ann =>
+      // Ensuring we can call this one
+      ann.tree.children.tail
+    }
+
+    annotations match {
+      case Nil => c.abort(c.enclosingPosition, s"No annotation found on $tpe")
+      case ann :: _ => q" _root_.testmacro.Test.AnnotationType.instance[$tpe, ${ann.tree.tpe}] "
+    }
   }
 
   def useUtil: Tree =
