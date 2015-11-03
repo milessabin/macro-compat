@@ -101,7 +101,7 @@ Builds are available for Scala 2.11.x and 2.10.x for Scala JDK and Scala.js.
 
 ```scala
 libraryDependencies ++= Seq(
-  "org.typelevel" %% "macro-compat" % "1.0.4",
+  "org.typelevel" %% "macro-compat" % "1.0.5",
   compilerPlugin("org.scalamacros" % "paradise" % "2.1.0-M5" cross CrossVersion.full)
 )
 ```
@@ -128,6 +128,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 ## Contributors
 
 + Adelbert Chang <adelbertc@gmail.com> [@adelbertchang](https://twitter.com/adelbertchang)
++ Alexandre Archambault <alexandre.archambault@gmail.com> [@alxarchambault](https://twitter.com/alxarchambault)
 + Alistair Johnson <alistair.johnson@johnsonusm.com> [@AlistairUSM](https://twitter.com/AlistairUSM)
 + Michael Pilquist <mpilquist@gmail.com> [@mpilquist](https://twitter.com/mpilquist)
 + Miles Sabin <miles@milessabin.com> [@milessabin](https://twitter.com/milessabin)

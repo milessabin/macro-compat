@@ -1,0 +1,16 @@
+This is the final release of [macro-compat-1.0.5][macro-compat].
+
+These release notes provide a summary of changes since macro-compat 1.0.4.
+
+* Added Type#dealias.
+
+* Added Annotation#tree.
+
+* Added support for usage of freshName with an empty parameter list.
+
+All the above contributed by [Alexandre Archambault][alxarchambault] ... much appreciated.
+
+Many thanks to everyone who has contributed ideas, enthusiasm and encouragement.
+
+[macro-compat]: https://github.com/milessabin/macro-compat
+[alxarchambault]: https://twitter.com/alxarchambault
