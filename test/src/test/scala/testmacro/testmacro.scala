@@ -101,6 +101,24 @@ class MacroCompatTests extends FunSuite {
     val res = Test.untypecheck(23)
     assert((res: Int) == 23)
   }
+
+  test("Dealias types") {
+    type T = List[Int]
+    Test.ensureOneTypeArg[T]
+  }
+
+  test("Fresh name") {
+    Test.freshName
+  }
+
+  test("Annotation") {
+    class Annotation extends scala.annotation.StaticAnnotation
+    @Annotation trait T
+
+    val annTpe = Test.AnnotationType[T]
+    val a = new Annotation
+    val a0: annTpe.Ann = a
+  }
 }
 
 class Foo
