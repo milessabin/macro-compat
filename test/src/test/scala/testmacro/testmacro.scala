@@ -108,7 +108,7 @@ class MacroCompatTests extends FunSuite {
   }
 
   test("Fresh name") {
-    Test.freshName
+    val nme = Test.freshName
   }
 
   test("Annotation") {
