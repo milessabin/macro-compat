@@ -67,10 +67,12 @@ class TestMacro(val c: whitebox.Context) {
 }
 ```
 
-This code compiles on both Scala 2.11.x and 2.10.x. On Scala 2.11.x the `@bundle` annotation is compiled as a trivial
-non-retained `scala.annotation.Annotation` and eliminated at compile time. On Scala 2.10.x the `@bundle` annotation is
-implemented as a macro annotation via the [macro-paradise][macro-paradise] compiler plugin and during compilation
-transforms the macro bundle class to an object definition which is compatible with the 2.10.x macro API.
+This code compiles on both Scala 2.11.x and 2.10.x.
+
+The `@bundle` annotation is implemented as a macro annotation via the [macro-paradise][macro-paradise] compiler
+plugin. On Scala 2.11.x the annotation is simply eliminated during compilation, leaving no trace in the resulting
+binaries. On Scala 2.10.x the annotation macro transforms the macro bundle class to an object definition which is
+compatible with the 2.10.x macro API.
 
 ## Current status
 
@@ -78,7 +80,7 @@ This is a young project, initially extracted out of the [export-hook][export-hoo
 less usable form in free moments snatched during ICFP 2015. Since then a number of generous contributors have made
 additions to the backport component and it is now seeing use in several other projects. I hope to have backport
 coverage expanded sufficiently for all the macro API usage in shapeless in the near future and I would be delighted
-for more projects to pick it up and extended it to cover their needs as well.
+for more projects to pick it up and extend it to cover their needs as well.
 
 If you would like to see or contribute particuluar extensions to the backport, please create issues here or hop on the
 [gitter channel][macrocompat-gitter]. Discussion is also welcome on the [shapeless][shapeless-gitter] and
