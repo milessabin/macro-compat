@@ -12,7 +12,7 @@ macros can be written just once, for the current API, and still be portable to e
 ## Why you should use macro-compat
 
 Scala macros are hard enough to write once ... writing them twice, once for each of the two API versions is even more
-or a chore.
+of a chore.
 
 Currently people adopt one of the following approaches if they want portable macros,
 
