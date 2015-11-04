@@ -72,6 +72,22 @@ trait TestUtil {
 class TestMacro(val c: whitebox.Context) extends TestUtil {
   import c.universe._
 
+  /**
+    * If a `NullPointerException` gets raised in this method, it means that the `c` member was
+    * accessed during the initialization of the class / trait by `MacroCompat`, which may not be
+    * possible in practice, if the initialization of `c` is delayed.
+    */
+  def noEarlyAccessTest(): Unit = {
+    val c0: c.type = c
+
+    new TestUtil {
+      val c = c0
+    }
+  }
+
+  noEarlyAccessTest()
+
+
   def fooImpl: Tree = {
     val nme0 = TermName(c.freshName)
     val TermName(str0) = nme0
