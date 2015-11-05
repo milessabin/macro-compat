@@ -55,8 +55,8 @@ trait MacroCompat {
     def unapply(name: TermName): Option[String] = Some(name.toString)
   }
 
-  val termNames = nme
-  val typeNames = tpnme
+  lazy val termNames = nme
+  lazy val typeNames = tpnme
 
   def freshName() = c.fresh
   def freshName(name: String) = c.fresh(name)
