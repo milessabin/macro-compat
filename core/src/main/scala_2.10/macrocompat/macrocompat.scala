@@ -18,7 +18,7 @@ package macrocompat
 
 import scala.language.experimental.macros
 
-import scala.reflect.macros.Context
+import scala.reflect.macros.{ Context, TypecheckException }
 
 trait MacroCompat {
   val c: Context
@@ -55,6 +55,14 @@ trait MacroCompat {
     def unapply(name: TermName): Option[String] = Some(name.toString)
   }
 
+  object Modifiers extends ModifiersCreator {
+    def apply(flags: FlagSet, privateWithin: Name = typeNames.EMPTY, annots: List[Tree] = Nil): Modifiers =
+      c.universe.Modifiers(flags, privateWithin, annots)
+
+    def unapply(mods: Modifiers): Option[(FlagSet, Name, List[Tree])] =
+      Some((mods.flags, mods.privateWithin, mods.annotations))
+  }
+
   lazy val termNames = nme
   lazy val typeNames = tpnme
 
@@ -64,11 +72,29 @@ trait MacroCompat {
 
   implicit def mkContextOps(c0: c.type): this.type = this
 
-  sealed trait TypecheckMode
-  case object TERMmode extends TypecheckMode
-  case object TYPEmode extends TypecheckMode
+  type TypecheckMode = Int
+  val TERMmode = global.analyzer.EXPRmode
+  val TYPEmode = global.analyzer.HKmode
 
-  def typecheck(
+  def typecheck(tree: Tree, mode: TypecheckMode = TERMmode, pt: Type = WildcardType, silent: Boolean = false, withImplicitViewsDisabled: Boolean = false, withMacrosDisabled: Boolean = false): Tree = {
+    val universe: global.type = global
+    val callsiteTyper = c.asInstanceOf[reflect.macros.runtime.Context].callsiteTyper.asInstanceOf[global.analyzer.Typer]
+    val context = callsiteTyper.context
+    val withImplicitFlag = if (!withImplicitViewsDisabled) (context.withImplicitsEnabled[Tree] _) else (context.withImplicitsDisabled[Tree] _)
+    val withMacroFlag = if (!withMacrosDisabled) (context.withMacrosEnabled[Tree] _) else (context.withMacrosDisabled[Tree] _)
+    def withContext(tree: => Tree) = withImplicitFlag(withMacroFlag(tree))
+    def withWrapping(tree: Tree)(op: Tree => Tree) = if (mode == TERMmode) universe.wrappingIntoTerm(tree)(op.asInstanceOf[universe.Tree => universe.Tree]) else op(tree)
+    def typecheckInternal(tree: Tree) = callsiteTyper.silent(_.typed(universe.duplicateAndKeepPositions(tree), mode, pt), reportAmbiguousErrors = false)
+    withWrapping(tree)(wrappedTree => withContext(typecheckInternal(wrappedTree) match {
+      case universe.analyzer.SilentResultValue(result) =>
+        result
+      case error @ universe.analyzer.SilentTypeError(_) =>
+        if (!silent) throw new TypecheckException(error.err.errPos, error.err.errMsg)
+        universe.EmptyTree
+    })).asInstanceOf[Tree]
+  }
+
+  def typecheck0(
     tree: Tree,
     mode: TypecheckMode = TERMmode,
     pt: Type = WildcardType,

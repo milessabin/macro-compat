@@ -41,7 +41,11 @@ object Test {
 
   def ref[T](t: T): AnyRef = macro TestMacro.refImpl[T]
 
+  def typecheck: Unit = macro TestMacro.typecheckImpl
+
   def untypecheck[T](t: T): T = macro TestMacro.untypecheckImpl[T]
+
+  def modifiers: Unit = macro TestMacro.modifiersImpl
 
   def ensureOneTypeArg[T]: Unit = macro TestMacro.ensureOneTypeArgImpl[T]
 
@@ -108,10 +112,7 @@ class TestMacro(val c: whitebox.Context) extends TestUtil {
 
   def bazImpl(is: Tree*): Tree = q""" 13 """
 
-  def quuxImpl[T: WeakTypeTag](t: Tree): Tree = {
-    val foo = c.typecheck(q""" 1+1 """, c.TYPEmode).tpe
-    t
-  }
+  def quuxImpl[T: WeakTypeTag](t: Tree): Tree = t
 
   def fooEImpl: c.Expr[Int] = c.Expr[Int](q""" 23 """)
 
@@ -119,10 +120,7 @@ class TestMacro(val c: whitebox.Context) extends TestUtil {
 
   def bazEImpl(is: c.Expr[Int]*): c.Expr[Int] = c.Expr[Int](q""" 13 """)
 
-  def quuxEImpl[T: c.WeakTypeTag](t: c.Expr[T]): c.Expr[T] = {
-    val foo = c.typecheck(q""" 1+1 """, c.TYPEmode).tpe
-    c.Expr[T](t.tree)
-  }
+  def quuxEImpl[T: c.WeakTypeTag](t: c.Expr[T]): c.Expr[T] = c.Expr[T](t.tree)
 
   def compImpl[T: c.WeakTypeTag](t: c.Expr[T]): Tree = {
     val typ = weakTypeOf[T]
@@ -145,9 +143,25 @@ class TestMacro(val c: whitebox.Context) extends TestUtil {
     q""" $ref """
   }
 
+  def typecheckImpl: Tree = {
+    assert(c.typecheck(q""" 1+1 """, c.TERMmode).tpe <:< typeOf[Int])
+    assert(c.typecheck(tq""" Int """, c.TYPEmode).tpe =:= typeOf[Int])
+    assert(c.typecheck(tq""" List """, c.TYPEmode).tpe =:= typeOf[List[Any]].typeConstructor)
+    assert(c.typecheck(tq""" List[Int] """, c.TYPEmode).tpe =:= typeOf[List[Int]])
+    assert(c.typecheck(tq""" Map """, c.TYPEmode).tpe =:= typeOf[Map[Any, Any]].typeConstructor)
+    assert(c.typecheck(tq""" Map[Int, String] """, c.TYPEmode).tpe =:= typeOf[Map[Int, String]])
+    q""" () """
+  }
+
   def untypecheckImpl[T: c.WeakTypeTag](t: c.Expr[T]): Tree = {
     val tree = c.untypecheck(t.tree)
     q""" $tree """
+  }
+
+  def modifiersImpl: Tree = {
+    val mods = Modifiers(Flag.IMPLICIT, TypeName("Pw"), List(EmptyTree))
+    val Modifiers(flags, pw, annots) = mods
+    q""" () """
   }
 
   def ensureOneTypeArgImpl[T: c.WeakTypeTag]: Tree =

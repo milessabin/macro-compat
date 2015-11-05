@@ -97,6 +97,14 @@ class MacroCompatTests extends FunSuite {
 
   }
 
+  test("Typecheck") {
+    Test.typecheck
+  }
+
+  test("Modifiers") {
+    Test.modifiers
+  }
+
   test("Untypecheck") {
     val res = Test.untypecheck(23)
     assert((res: Int) == 23)

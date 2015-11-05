@@ -68,7 +68,7 @@ class ExportMacro(val c: whitebox.Context) {
 
   def exportedImpl(annottees: Tree*): Tree = {
     val Apply(Select(New(AppliedTypeTree(_, List(tc))), _), _) = c.prefix.tree
-    val tcTpe = NoType //c.typecheck(tc, c.TYPEmode).tpe
+    val tcTpe = c.typecheck(tc, c.TYPEmode).tpe
     val kind = tcTpe.typeParams.map(_.asType.typeParams.length)
     val suffix =
       kind match {
