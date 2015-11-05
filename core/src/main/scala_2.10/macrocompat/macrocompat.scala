@@ -94,24 +94,6 @@ trait MacroCompat {
     })).asInstanceOf[Tree]
   }
 
-  def typecheck0(
-    tree: Tree,
-    mode: TypecheckMode = TERMmode,
-    pt: Type = WildcardType,
-    silent: Boolean = false,
-    withImplicitViewsDisabled: Boolean = false,
-    withMacrosDisabled: Boolean = false
-  ): Tree =
-    // Spurious non exhaustive match warning ... see,
-    //   https://issues.scala-lang.org/browse/SI-8068
-    (mode: @unchecked) match {
-      case TERMmode =>
-        c.typeCheck(tree, pt, silent, withImplicitViewsDisabled, withMacrosDisabled)
-      case TYPEmode =>
-        val term = q"null.asInstanceOf[$tree[Any]]"
-        c.typeCheck(term, pt, silent, withImplicitViewsDisabled, withMacrosDisabled)
-    }
-
   def untypecheck(tree: Tree): Tree = c.resetLocalAttrs(tree)
 
   implicit class TypeOps(tpe: Type) {
