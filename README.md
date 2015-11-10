@@ -131,6 +131,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 + [expressier][expressier]
 + [marley][marley]
 + [Monocle][monocle]
++ [refined][refined]
 + [simulacrum][simulacrum]
 + [tfm][tfm]
 
@@ -165,3 +166,4 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 [sonatype]: https://oss.sonatype.org/index.html#nexus-search;quick~macro-compat
 [ci]: https://travis-ci.org/milessabin/macro-compat
 [mima]: https://github.com/typesafehub/migration-manager
+[refined]: https://github.com/fthomas/refined
