@@ -2,6 +2,13 @@ import com.typesafe.sbt.pgp.PgpKeys.publishSigned
 import org.scalajs.sbtplugin.cross.CrossProject
 import ReleaseTransformations._
 
+import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
+import com.typesafe.tools.mima.plugin.MimaKeys
+import MimaKeys.{previousArtifact, binaryIssueFilters}
+import com.typesafe.tools.mima.core._
+import com.typesafe.tools.mima.core.ProblemFilters._
+
+
 lazy val buildSettings = Seq(
   organization := "org.typelevel",
   scalaVersion := "2.11.7",
@@ -47,6 +54,7 @@ lazy val root = project.in(file("."))
 lazy val core = crossProject.crossType(CrossType.Pure)
   .settings(moduleName := "macro-compat")
   .settings(coreSettings:_*)
+  .settings(mimaSettings:_*)
   .jsSettings(commonJsSettings:_*)
   .jvmSettings(commonJvmSettings:_*)
 
@@ -70,7 +78,7 @@ lazy val test = crossProject.crossType(CrossType.Pure)
 lazy val testJVM = test.jvm
 lazy val testJS = test.js
 
-addCommandAlias("validate", ";root;compile;test")
+addCommandAlias("validate", ";root;compile;mima-report-binary-issues;test")
 addCommandAlias("release-all", ";root;release")
 addCommandAlias("js", ";project coreJS")
 addCommandAlias("jvm", ";project coreJVM")
@@ -128,6 +136,24 @@ lazy val publishSettings = Seq(
       </developer>
     </developers>
   )
+)
+
+lazy val mimaSettings = mimaDefaultSettings ++ Seq(
+  previousArtifact := Some(organization.value %% moduleName.value % "1.0.3"),
+
+  binaryIssueFilters ++= {
+    // Filtering the methods that were added since the checked version
+    // (these only break forward compatibility, not the backward one)
+    Seq(
+      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.TypeName"),
+      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.TermName"),
+      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.AnnotationOps"),
+      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.Modifiers"),
+      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.TypecheckMode"),
+      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.macrocompat$MacroCompat$_setter_$termNames_="),
+      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.macrocompat$MacroCompat$_setter_$typeNames_=")
+    )
+  }
 )
 
 lazy val noPublishSettings = Seq(
