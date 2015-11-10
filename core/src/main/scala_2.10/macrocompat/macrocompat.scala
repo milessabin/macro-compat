@@ -45,13 +45,13 @@ trait MacroCompat {
   def symbolOf[T: WeakTypeTag]: TypeSymbol =
     weakTypeOf[T].typeSymbolDirect.asType
 
+  def TypeName(s: String) = newTypeName(s)
   object TypeName {
-    def apply(s: String) = newTypeName(s)
     def unapply(name: TypeName): Option[String] = Some(name.toString)
   }
 
+  def TermName(s: String) = newTermName(s)
   object TermName {
-    def apply(s: String) = newTermName(s)
     def unapply(name: TermName): Option[String] = Some(name.toString)
   }
 
@@ -72,9 +72,17 @@ trait MacroCompat {
 
   implicit def mkContextOps(c0: c.type): this.type = this
 
-  type TypecheckMode = Int
-  val TERMmode = global.analyzer.EXPRmode
-  val TYPEmode = global.analyzer.HKmode
+  sealed trait TypecheckMode
+  case object TERMmode extends TypecheckMode
+  case object TYPEmode extends TypecheckMode
+
+  object TypecheckMode {
+    implicit def toInt(m: TypecheckMode): Int =
+      m match {
+        case TERMmode => global.analyzer.EXPRmode
+        case TYPEmode => global.analyzer.HKmode
+      }
+  }
 
   def typecheck(tree: Tree, mode: TypecheckMode = TERMmode, pt: Type = WildcardType, silent: Boolean = false, withImplicitViewsDisabled: Boolean = false, withMacrosDisabled: Boolean = false): Tree = {
     val universe: global.type = global
