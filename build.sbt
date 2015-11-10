@@ -139,19 +139,12 @@ lazy val publishSettings = Seq(
 )
 
 lazy val mimaSettings = mimaDefaultSettings ++ Seq(
-  previousArtifact := Some(organization.value %% moduleName.value % "1.0.3"),
+  previousArtifact := None,
 
   binaryIssueFilters ++= {
     // Filtering the methods that were added since the checked version
     // (these only break forward compatibility, not the backward one)
     Seq(
-      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.TypeName"),
-      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.TermName"),
-      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.AnnotationOps"),
-      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.Modifiers"),
-      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.TypecheckMode"),
-      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.macrocompat$MacroCompat$_setter_$termNames_="),
-      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.macrocompat$MacroCompat$_setter_$typeNames_=")
     )
   }
 )
