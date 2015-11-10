@@ -103,10 +103,17 @@ Builds are available for Scala 2.11.x and 2.10.x for Scala JDK and Scala.js.
 
 ```scala
 libraryDependencies ++= Seq(
-  "org.typelevel" %% "macro-compat" % "1.0.6",
+  "org.typelevel" %% "macro-compat" % "1.0.7",
   compilerPlugin("org.scalamacros" % "paradise" % "2.1.0-M5" cross CrossVersion.full)
 )
 ```
+
+## Binary compatibility
+
+As of version 1.0.7 macro-compat uses [MiMa][mima] to verify binary compatibility within minor versions. Binary
+compatibility was broken in 1.0.3 and again in 1.0.6. In version 1.0.7 binary compatability with 1.0.3-5 has been
+restored and 1.0.6 is now deprecated. The binary compatibility breaking changes have been moved to 1.1.0 and hopefully
+the addition of MiMa to the build will make a recurrence of this sort of breakage much less likely in future.
 
 ## Building macro-compat
 
@@ -157,3 +164,4 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 [catalysts]: https://github.com/InTheNow/catalysts
 [sonatype]: https://oss.sonatype.org/index.html#nexus-search;quick~macro-compat
 [ci]: https://travis-ci.org/milessabin/macro-compat
+[mima]: https://github.com/typesafehub/migration-manager
