@@ -169,53 +169,62 @@ class BundleMacro[C <: Context](val c: C) {
           Template(newParents, self, body))
         fixPositions(res)
 
-      case List(ClassDef(mods, macroClassNme, tparams, Template(parents, self, body))) =>
-        val defns = body collect {
-          case MacroImpl(d: DefDef) => d
-        }
+      case List(clsDef: ClassDef) => mkMacroClsAndObjTree(clsDef, Nil)
 
-        val PARAMACCESSOR = (1L << 29).asInstanceOf[FlagSet]
-        val macroDefns = body filter {
-          case d: DefDef if d.name == nme.CONSTRUCTOR => false
-          case ValDef(mods, _, _, _) if mods.hasFlag(PARAMACCESSOR) => false
-          case _ => true
-        }
-
-        val clientCtxNme = (body collectFirst {
-          case ValDef(mods, nme, _, _) if mods.hasFlag(PARAMACCESSOR) => nme
-        }).getOrElse(c.abort(c.enclosingPosition, "Missing Context parameter"))
-
-        val compatNme = newTermName("c")
-        val compatTypeNme = newTypeName(c.fresh)
-        val forwarders = defns.map { d => mkForwarder(d, macroClassNme, clientCtxNme) }
-        // For now all macro bundles must have a Context constructor argument named "c". See,
-        //   https://gitter.im/scala/scala?at=55ef0ffe24362d5253fe3a51
-        // We support renaming on the offchance that this will get fixed.
-        val alias =
-          if(clientCtxNme == compatNme) List()
-          else List(q""" val $clientCtxNme: $compatNme.type = $compatNme """)
-
-        val macroObjectNme = macroClassNme.toTermName
-
-        val res =
-        q"""
-          class $macroClassNme[$compatTypeNme <: scala.reflect.macros.Context]
-            (val $compatNme: $compatTypeNme) extends $macroObjectNme.Stub
-
-          object $macroObjectNme {
-            trait Stub extends ..$parents with _root_.macrocompat.MacroCompat {
-              ..$alias
-              ..$macroDefns
-            }
-
-            ..$forwarders
-          }
-        """
-        fixPositions(res)
+      case List(clsDef: ClassDef, q"object $objName { ..$objBody }") => mkMacroClsAndObjTree(clsDef, objBody)
 
       case other =>
         c.abort(c.enclosingPosition, "Unexpected tree shape.")
     }
+  }
+
+  def mkMacroClsAndObjTree(clsDef: ClassDef, objBody: List[Tree]) = {
+    val ClassDef(_, macroClassNme, _, Template(parents, _, body)) = clsDef
+
+    val defns = body collect {
+      case MacroImpl(d: DefDef) => d
+    }
+
+    val PARAMACCESSOR = (1L << 29).asInstanceOf[FlagSet]
+    val macroDefns = body filter {
+      case d: DefDef if d.name == nme.CONSTRUCTOR => false
+      case ValDef(mods, _, _, _) if mods.hasFlag(PARAMACCESSOR) => false
+      case _ => true
+    }
+
+    val clientCtxNme = (body collectFirst {
+      case ValDef(mods, nme, _, _) if mods.hasFlag(PARAMACCESSOR) => nme
+    }).getOrElse(c.abort(c.enclosingPosition, "Missing Context parameter"))
+
+    val compatNme = newTermName("c")
+    val compatTypeNme = newTypeName(c.fresh)
+    val forwarders = defns.map { d => mkForwarder(d, macroClassNme, clientCtxNme) }
+    // For now all macro bundles must have a Context constructor argument named "c". See,
+    //   https://gitter.im/scala/scala?at=55ef0ffe24362d5253fe3a51
+    // We support renaming on the offchance that this will get fixed.
+    val alias =
+      if(clientCtxNme == compatNme) List()
+      else List(q""" val $clientCtxNme: $compatNme.type = $compatNme """)
+
+    val macroObjectNme = macroClassNme.toTermName
+
+    val res =
+    q"""
+      class $macroClassNme[$compatTypeNme <: scala.reflect.macros.Context]
+        (val $compatNme: $compatTypeNme) extends $macroObjectNme.Stub
+
+      object $macroObjectNme {
+        trait Stub extends ..$parents with _root_.macrocompat.MacroCompat {
+          ..$alias
+          ..$macroDefns
+        }
+
+        ..$forwarders
+
+        ..$objBody
+      }
+    """
+    fixPositions(res)
   }
 }
 
