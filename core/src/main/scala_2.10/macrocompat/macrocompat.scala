@@ -197,5 +197,7 @@ trait MacroCompat {
       def mkAttributedRef(pre: Type, sym: Symbol): Tree =
         global.gen.mkAttributedRef(pre, sym)
     }
+
+    object decorators
   }
 }
