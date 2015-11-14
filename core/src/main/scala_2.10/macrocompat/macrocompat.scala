@@ -132,6 +132,10 @@ trait MacroCompat {
     def isConstructor: Boolean = sym.isMethod &&sym.asMethod.isConstructor
   }
 
+  implicit class TreeOps(tree: Tree) {
+    def nonEmpty = !tree.isEmpty
+  }
+
   implicit class AnnotationOps(ann: Annotation) {
     // cut-n-pasted (with the comments) from
     // https://github.com/scala/scala/blob/v2.11.7/src/reflect/scala/reflect/internal/AnnotationInfos.scala#L348-L382
