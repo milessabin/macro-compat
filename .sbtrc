@@ -1,1 +1,1 @@
-alias boot = ;reload ;project testJVM ;++2.10.5 ;iflast shell
+alias boot = ;reload ;project testJVM ;++2.10.6 ;iflast shell
