@@ -145,7 +145,8 @@ lazy val mimaSettings = mimaDefaultSettings ++ Seq(
     // Filtering the methods that were added since the checked version
     // (these only break forward compatibility, not the backward one)
     Seq(
-      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.TreeOps")
+      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.TreeOps"),
+      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.ImplicitCandidate")
     )
   }
 )
