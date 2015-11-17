@@ -188,6 +188,8 @@ trait MacroCompat {
   object internal {
     def constantType(c: Constant): ConstantType = ConstantType(c)
 
+    def polyType(tparams: List[Symbol], tpe: Type): Type = c.universe.polyType(tparams, tpe)
+
     def enclosingOwner: Symbol = {
       val internalContext = c.asInstanceOf[scala.reflect.macros.runtime.Context]
       val internalOwner = internalContext.callsiteTyper.context.owner
