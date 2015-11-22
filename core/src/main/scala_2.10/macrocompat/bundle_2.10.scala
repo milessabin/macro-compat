@@ -70,7 +70,7 @@ class BundleMacro[C <: Context](val c: C) {
 
   def mkForwarder(d: DefDef, typeNme: TypeName, rename: TermName): DefDef = {
     val DefDef(mods, name, tparams, vparamss, tpt, rhs) = d
-    val ctxNme = newTermName(c.fresh)
+    val ctxNme = newTermName(c.fresh("forwarderCtxNme"))
     val ctxParam = q""" val $ctxNme: _root_.scala.reflect.macros.Context """
 
     val targs = tparams.map(_.name)
@@ -97,7 +97,7 @@ class BundleMacro[C <: Context](val c: C) {
       }
     })
 
-    val instNme = newTermName(c.fresh)
+    val instNme = newTermName(c.fresh("forwarderInstNme"))
     val call = q""" $instNme.${name.toTermName}[..$targs](...$cargss) """
     val (ctpt, wrap) =
       tpt match {
@@ -197,14 +197,16 @@ class BundleMacro[C <: Context](val c: C) {
     }).getOrElse(c.abort(c.enclosingPosition, "Missing Context parameter"))
 
     val compatNme = newTermName("c")
-    val compatTypeNme = newTypeName(c.fresh)
+    val compatTypeNme = newTypeName(c.fresh("compatTypeNme"))
     val forwarders = defns.map { d => mkForwarder(d, macroClassNme, clientCtxNme) }
     // For now all macro bundles must have a Context constructor argument named "c". See,
     //   https://gitter.im/scala/scala?at=55ef0ffe24362d5253fe3a51
     // We support renaming on the offchance that this will get fixed.
-    val alias =
-      if(clientCtxNme == compatNme) List()
-      else List(q""" val $clientCtxNme: $compatNme.type = $compatNme """)
+//  val alias =
+//    if(clientCtxNme == compatNme) List()
+//    else List(q""" val $clientCtxNme: $compatNme.type = $compatNme """)
+
+    val alias = List(q""" val c0: $compatNme.type = $compatNme """)
 
     val macroObjectNme = macroClassNme.toTermName
 
@@ -224,7 +226,9 @@ class BundleMacro[C <: Context](val c: C) {
         ..$objBody
       }
     """
-    fixPositions(res)
+    val t = fixPositions(res)
+    println(show(t))
+    t
   }
 }
 

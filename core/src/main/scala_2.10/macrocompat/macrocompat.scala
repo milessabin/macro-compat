@@ -21,7 +21,40 @@ import scala.language.experimental.macros
 import scala.reflect.macros.{ Context, TypecheckException }
 
 trait MacroCompat {
-  val c: Context
+  val c0: Context
+
+  implicit def cIsContext(cObj: c.type): c0.type = c0
+
+  object c {
+    val universe: c0.universe.type = c0.universe
+    import universe._
+
+    type Expr[+T] = c0.Expr[T]
+    type WeakTypeTag[T] = c0.WeakTypeTag[T]
+
+    object ImplicitCandidate {
+      def unapply(t: (Type, Tree)): Option[(Type, Symbol, Type, Tree)] = {
+        val (pt, tree) = t
+        import scala.language.existentials
+        val typer = c.asInstanceOf[scala.reflect.macros.runtime.Context].callsiteTyper
+        typer.context.openImplicits.filter(oi => oi.pt == pt && oi.tree == tree) match {
+          case List(oi) => Some((
+            oi.info.pre.asInstanceOf[Type],
+            oi.info.sym.asInstanceOf[Symbol],
+            oi.pt.asInstanceOf[Type],
+            oi.tree.asInstanceOf[Tree]
+            ))
+          case Nil =>
+            c.abort(c.enclosingPosition, s"Failed to identify ImplicitCandidate for $t, none match")
+          case xs =>
+            c.abort(c.enclosingPosition, s"Failed to identify ImplicitCandidate for $t, ${xs.size} match")
+        }
+      }
+    }
+
+    // TODO: Tweak mkMacroClsAndObjTree "to make sure [object c] ends up visible in the user code in the right way"
+  }
+
   import c.universe._
 
   object GlobalConversions {
