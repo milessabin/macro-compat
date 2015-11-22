@@ -205,5 +205,7 @@ trait MacroCompat {
     }
 
     object decorators
+
+    def thisType(sym: Symbol): Type = ThisType(sym)
   }
 }
