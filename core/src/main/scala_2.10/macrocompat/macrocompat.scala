@@ -219,5 +219,7 @@ trait MacroCompat {
     object decorators
 
     def thisType(sym: Symbol): Type = ThisType(sym)
+
+    def singleType(pre: Type, sym: Symbol): Type = SingleType(pre, sym)
   }
 }
