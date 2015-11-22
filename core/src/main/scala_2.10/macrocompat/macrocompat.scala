@@ -112,6 +112,8 @@ trait MacroCompat {
     def decls = tpe.declarations
 
     def dealias: Type = tpe.normalize
+
+    def finalResultType: Type = (tpe: global.Type).finalResultType
   }
 
   implicit class MethodSymbolOps(sym: MethodSymbol) {
