@@ -180,6 +180,11 @@ trait MacroCompat {
     def tree: Tree = annotationToTree(ann)
   }
 
+  implicit class ImplicitCandidateTupleOps(t: (Type, Tree)) {
+    def pt = t._1
+    def tree = t._2
+  }
+
   def appliedType(tc: Type, ts: List[Type]): Type = c.universe.appliedType(tc, ts)
   def appliedType(tc: Type, ts: Type*): Type = c.universe.appliedType(tc, ts.toList)
 
