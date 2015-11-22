@@ -202,9 +202,11 @@ class BundleMacro[C <: Context](val c: C) {
     // For now all macro bundles must have a Context constructor argument named "c". See,
     //   https://gitter.im/scala/scala?at=55ef0ffe24362d5253fe3a51
     // We support renaming on the offchance that this will get fixed.
-    val alias =
-      if(clientCtxNme == compatNme) List()
-      else List(q""" val $clientCtxNme: $compatNme.type = $compatNme """)
+//  val alias =
+//    if(clientCtxNme == compatNme) List()
+//    else List(q""" val $clientCtxNme: $compatNme.type = $compatNme """)
+
+    val alias = List(q""" val c0: $compatNme.type = $compatNme """)
 
     val macroObjectNme = macroClassNme.toTermName
 
@@ -224,7 +226,9 @@ class BundleMacro[C <: Context](val c: C) {
         ..$objBody
       }
     """
-    fixPositions(res)
+    val t = fixPositions(res)
+    println(show(t))
+    t
   }
 }
 
