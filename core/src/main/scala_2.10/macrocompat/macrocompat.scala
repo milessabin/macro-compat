@@ -99,6 +99,11 @@ trait MacroCompat {
   implicit class TypeOps(tpe: Type) {
     def typeParams = tpe.typeSymbol.asType.typeParams
 
+    def typeArgs: List[Type] = tpe match {
+      case TypeRef(_, _, args) => args
+      case _ => Nil
+    }
+
     def companion: Type = {
       val sym = tpe.typeSymbolDirect
       if (sym.isModule && !sym.hasPackageFlag) sym.companionSymbol.tpe
