@@ -253,5 +253,8 @@ trait MacroCompat {
     def typeRef(pre: Type, sym: Symbol, args: List[Type]): Type = c.universe.typeRef(pre, sym, args)
 
     def setInfo(sym: Symbol, tpe: Type): Symbol = sym.setTypeSignature(tpe)
+
+    def newTermSymbol(owner: Symbol, name: TermName, pos: Position = NoPosition, flags: FlagSet = NoFlags): TermSymbol =
+      owner.newTermSymbol(name, pos, flags)
   }
 }
