@@ -256,5 +256,8 @@ trait MacroCompat {
 
     def newTermSymbol(owner: Symbol, name: TermName, pos: Position = NoPosition, flags: FlagSet = NoFlags): TermSymbol =
       owner.newTermSymbol(name, pos, flags)
+
+    def substituteSymbols(tree: Tree, from: List[Symbol], to: List[Symbol]): Tree =
+      tree.substituteSymbols(from, to)
   }
 }
