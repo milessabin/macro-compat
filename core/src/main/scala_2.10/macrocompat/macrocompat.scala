@@ -247,5 +247,7 @@ trait MacroCompat {
     def thisType(sym: Symbol): Type = ThisType(sym)
 
     def singleType(pre: Type, sym: Symbol): Type = SingleType(pre, sym)
+
+    def typeRef(pre: Type, sym: Symbol, args: List[Type]): Type = c.universe.typeRef(pre, sym, args)
   }
 }
