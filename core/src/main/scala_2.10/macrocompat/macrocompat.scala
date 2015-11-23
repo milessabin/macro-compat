@@ -139,6 +139,8 @@ trait MacroCompat {
     def isConstructor: Boolean = sym.isMethod &&sym.asMethod.isConstructor
 
     def isAbstract: Boolean = sym.isAbstractClass
+
+    def overrides: List[Symbol] = sym.allOverriddenSymbols
   }
 
   implicit class TreeOps(tree: Tree) {
