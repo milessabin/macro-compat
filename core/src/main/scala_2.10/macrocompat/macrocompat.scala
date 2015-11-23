@@ -137,6 +137,8 @@ trait MacroCompat {
     def infoIn(site: Type): Type = sym.typeSignatureIn(site)
 
     def isConstructor: Boolean = sym.isMethod &&sym.asMethod.isConstructor
+
+    def isAbstract: Boolean = sym.isAbstractClass
   }
 
   implicit class TreeOps(tree: Tree) {
