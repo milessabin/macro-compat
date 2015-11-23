@@ -251,5 +251,7 @@ trait MacroCompat {
     def singleType(pre: Type, sym: Symbol): Type = SingleType(pre, sym)
 
     def typeRef(pre: Type, sym: Symbol, args: List[Type]): Type = c.universe.typeRef(pre, sym, args)
+
+    def setInfo(sym: Symbol, tpe: Type): Symbol = sym.setTypeSignature(tpe)
   }
 }
