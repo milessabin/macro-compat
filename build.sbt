@@ -146,7 +146,8 @@ lazy val mimaSettings = mimaDefaultSettings ++ Seq(
     // (these only break forward compatibility, not the backward one)
     Seq(
       ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.TreeOps"),
-      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.ImplicitCandidateTupleOps")
+      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.tupleToImplicitCandidate"),
+      ProblemFilters.exclude[MissingMethodProblem]("macrocompat.MacroCompat.ImplicitCandidate")
     )
   }
 )

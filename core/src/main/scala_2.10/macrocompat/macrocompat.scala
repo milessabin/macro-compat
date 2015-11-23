@@ -187,9 +187,33 @@ trait MacroCompat {
     def tree: Tree = annotationToTree(ann)
   }
 
-  implicit class ImplicitCandidateTupleOps(t: (Type, Tree)) {
-    def pt = t._1
-    def tree = t._2
+  case class ImplicitCandidate(pre: Type, sym: Symbol, pt: Type, tree: Tree)
+
+  object ImplicitCandidate {
+    def unapply(t: (Type, Tree)): Option[(Type, Symbol, Type, Tree)] = tryUnapply(t).right.toOption
+
+    def tryUnapply(t: (Type, Tree)): Either[String, (Type, Symbol, Type, Tree)] = {
+      val (pt, tree) = t
+      import scala.language.existentials
+      val typer = c.asInstanceOf[scala.reflect.macros.runtime.Context].callsiteTyper
+      typer.context.openImplicits.filter(oi => oi.pt == pt && oi.tree == tree) match {
+        case List(oi) => Right((
+          oi.info.pre.asInstanceOf[Type],
+          oi.info.sym.asInstanceOf[Symbol],
+          oi.pt.asInstanceOf[Type],
+          oi.tree.asInstanceOf[Tree]
+        ))
+        case Nil => Left(s"Failed to identify ImplicitCandidate for $t, none match")
+        case xs => Left(s"Failed to identify ImplicitCandidate for $t, ${xs.size} match")
+      }
+    }
+  }
+
+  implicit def tupleToImplicitCandidate(t: (Type, Tree)): ImplicitCandidate = {
+    ImplicitCandidate.tryUnapply(t) match {
+      case Left(s) => c.abort(c.enclosingPosition, s)
+      case Right((pre, sym, pt, tree)) => ImplicitCandidate(pre, sym, pt, tree)
+    }
   }
 
   def appliedType(tc: Type, ts: List[Type]): Type = c.universe.appliedType(tc, ts)
