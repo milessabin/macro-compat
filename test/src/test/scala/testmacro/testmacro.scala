@@ -127,6 +127,12 @@ class MacroCompatTests extends FunSuite {
     val a = new Annotation
     val a0: annTpe.Ann = a
   }
+
+  test("ImplicitCandidate") {
+    import Test.materialize
+    val res = implicitly[List[String]]
+    assert(res == List("materialize"))
+  }
 }
 
 class Foo

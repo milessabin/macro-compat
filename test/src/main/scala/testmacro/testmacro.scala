@@ -51,6 +51,8 @@ object Test {
 
   def freshName: String = macro TestMacro.freshNameImpl
 
+  implicit def materialize: List[String] = macro TestMacro.materialize
+
   trait AnnotationType[T] {
     type Ann
   }
@@ -75,22 +77,6 @@ trait TestUtil {
 @bundle
 class TestMacro(val c: whitebox.Context) extends TestUtil {
   import c.universe._
-
-  /**
-    * If a `NullPointerException` gets raised in this method, it means that the `c` member was
-    * accessed during the initialization of the class / trait by `MacroCompat`, which may not be
-    * possible in practice, if the initialization of `c` is delayed.
-    */
-  def noEarlyAccessTest(): Unit = {
-    val c0: c.type = c
-
-    new TestUtil {
-      val c = c0
-    }
-  }
-
-  noEarlyAccessTest()
-
 
   def fooImpl: Tree = {
     val nme0 = TermName(c.freshName)
@@ -198,4 +184,13 @@ class TestMacro(val c: whitebox.Context) extends TestUtil {
 
   def const: Tree =
     TypeTree(internal.constantType(Constant(23)))
+
+  def materialize: Tree = {
+    import c.ImplicitCandidate
+
+    val oi = c.openImplicits
+    val ImplicitCandidate(pre, sym, pt, tree) = oi.head
+    val s = sym.name.toString
+    q"List($s)"
+  }
 }
