@@ -68,7 +68,7 @@ class BundleMacro[C <: Context](val c: C) {
     }
   }
 
-  def mkForwarder(d: DefDef, typeNme: TypeName, rename: TermName): DefDef = {
+  def mkForwarder(d: DefDef, typeNme: TypeName, instNme: TermName): DefDef = {
     val DefDef(mods, name, tparams, vparamss, tpt, rhs) = d
     val ctxNme = newTermName(c.fresh)
     val ctxParam = q""" val $ctxNme: _root_.scala.reflect.macros.Context """
@@ -97,9 +97,8 @@ class BundleMacro[C <: Context](val c: C) {
       }
     })
 
-    val instNme = newTermName(c.fresh)
-    val call = q""" $instNme.${name.toTermName}[..$targs](...$cargss) """
-    val (ctpt, wrap) =
+    val call = q""" $instNme($ctxNme).${name.toTermName}[..$targs](...$cargss) """
+    val (ctpt, crhs) =
       tpt match {
         case ExprE(tpt) => (
           tq""" $ctxNme.Expr[$tpt] """,
@@ -110,14 +109,6 @@ class BundleMacro[C <: Context](val c: C) {
            q""" $ctxNme.Expr[Nothing](_root_.macrocompat.BundleMacro.fixPositions[$ctxNme.type]($ctxNme)($call)) """
          )
       }
-
-    val crhs =
-      q"""
-        {
-          val $instNme = new $typeNme[$ctxNme.type]($ctxNme)
-          $wrap
-        }
-      """
 
     DefDef(mods, name, tparams, List(ctxParam) :: cvparamss, ctpt, crhs)
   }
@@ -200,20 +191,19 @@ class BundleMacro[C <: Context](val c: C) {
       case _ => true
     }
 
-    val compatNme = newTermName("c0")
-    val compatTypeNme = newTypeName(c.fresh)
-    val forwarders = defns.map { d => mkForwarder(d, macroClassNme, origCtxNme) }
+    val instNme = newTermName(c.fresh)
+    val forwarders = defns.map { d => mkForwarder(d, macroClassNme, instNme) }
     val macroObjectNme = macroClassNme.toTermName
 
     val res =
     q"""
-      class $macroClassNme[$compatTypeNme <: scala.reflect.macros.Context]
-        (val $compatNme: $compatTypeNme) extends $macroObjectNme.Stub
+      abstract class $macroClassNme extends ..$parents with _root_.macrocompat.MacroCompat {
+        ..$macroDefns
+      }
 
       object $macroObjectNme {
-        trait Stub extends ..$parents with _root_.macrocompat.MacroCompat {
-          ..$macroDefns
-        }
+        def $instNme(c1: _root_.scala.reflect.macros.Context): $macroClassNme { val c0: c1.type } =
+          new $macroClassNme { val c0: c1.type = c1 }
 
         ..$forwarders
 
