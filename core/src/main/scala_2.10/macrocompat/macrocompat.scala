@@ -50,8 +50,21 @@ trait MacroCompat {
     val universe: c0.universe.type = c0.universe
 
     type Expr[T] = c0.Expr[T]
+    type Modifiers = c0.Modifiers
+    type Name = c0.Name
+    type Position = c0.Position
+    type Scope = c0.Scope
+    type Symbol = c0.Symbol
+    type TermName = c0.TermName
+    type Tree = c0.Tree
+    type Type = c0.Type
+    type TypeName = c0.TypeName
     type TypeTag[T] = c0.TypeTag[T]
     type WeakTypeTag[T] = c0.WeakTypeTag[T]
+
+    def freshName() = c.fresh
+    def freshName(name: String) = c.fresh(name)
+    def freshName[NameType <: Name](name: NameType) = c.fresh(name)
 
     case class ImplicitCandidate(pre: Type, sym: Symbol, pt: Type, tree: Tree)
 
@@ -66,6 +79,63 @@ trait MacroCompat {
           case xs => Left(s"Failed to identify ImplicitCandidate for $t, ${xs.size} match")
         }
       }
+    }
+
+    type TypecheckMode = Int
+    val TERMmode = global.analyzer.EXPRmode
+    val TYPEmode = global.analyzer.HKmode
+
+    def typecheck(tree: Tree, mode: TypecheckMode = TERMmode, pt: Type = WildcardType, silent: Boolean = false, withImplicitViewsDisabled: Boolean = false, withMacrosDisabled: Boolean = false): Tree = {
+      val universe: global.type = global
+      type Tree = universe.Tree
+      type Type = universe.Type
+      val context = callsiteTyper.context
+      val withImplicitFlag = if (!withImplicitViewsDisabled) (context.withImplicitsEnabled[Tree] _) else (context.withImplicitsDisabled[Tree] _)
+      val withMacroFlag = if (!withMacrosDisabled) (context.withMacrosEnabled[Tree] _) else (context.withMacrosDisabled[Tree] _)
+      def withContext(tree: => Tree) = withImplicitFlag(withMacroFlag(tree))
+      def withWrapping(tree: Tree)(op: Tree => Tree) = if (mode == TERMmode) universe.wrappingIntoTerm(tree)(op) else op(tree)
+      def typecheckInternal(tree: Tree) = callsiteTyper.silent(_.typed(universe.duplicateAndKeepPositions(tree), mode, pt), reportAmbiguousErrors = false)
+      withWrapping(tree)(wrappedTree => withContext(typecheckInternal(wrappedTree) match {
+        case universe.analyzer.SilentResultValue(result) =>
+          result
+        case error @ universe.analyzer.SilentTypeError(_) =>
+          if (!silent) throw new TypecheckException(error.err.errPos, error.err.errMsg)
+          universe.EmptyTree
+      }))
+    }
+
+    def untypecheck(tree: Tree): Tree = c.resetLocalAttrs(tree)
+
+    object internal {
+      def constantType(c: Constant): ConstantType = ConstantType(c)
+
+      def polyType(tparams: List[Symbol], tpe: Type): Type = c.universe.polyType(tparams, tpe)
+
+      def enclosingOwner: Symbol = callsiteTyper.context.owner
+
+      object gen {
+        def mkAttributedRef(sym: Symbol): Tree =
+          global.gen.mkAttributedRef(sym)
+
+        def mkAttributedRef(pre: Type, sym: Symbol): Tree =
+          global.gen.mkAttributedRef(pre, sym)
+      }
+
+      object decorators
+
+      def thisType(sym: Symbol): Type = ThisType(sym)
+
+      def singleType(pre: Type, sym: Symbol): Type = SingleType(pre, sym)
+
+      def typeRef(pre: Type, sym: Symbol, args: List[Type]): Type = c.universe.typeRef(pre, sym, args)
+
+      def setInfo(sym: Symbol, tpe: Type): Symbol = sym.setTypeSignature(tpe)
+
+      def newTermSymbol(owner: Symbol, name: TermName, pos: Position = NoPosition, flags: FlagSet = NoFlags): TermSymbol =
+        owner.newTermSymbol(name, pos, flags)
+
+      def substituteSymbols(tree: Tree, from: List[Symbol], to: List[Symbol]): Tree =
+        tree.substituteSymbols(from, to)
     }
   }
 
@@ -103,36 +173,6 @@ trait MacroCompat {
 
   lazy val termNames = nme
   lazy val typeNames = tpnme
-
-  def freshName() = c.fresh
-  def freshName(name: String) = c.fresh(name)
-  def freshName[NameType <: Name](name: NameType) = c.fresh(name)
-
-  implicit def mkContextOps(c0: c.type): this.type = this
-
-  type TypecheckMode = Int
-  val TERMmode = global.analyzer.EXPRmode
-  val TYPEmode = global.analyzer.HKmode
-
-  def typecheck(tree: Tree, mode: TypecheckMode = TERMmode, pt: Type = WildcardType, silent: Boolean = false, withImplicitViewsDisabled: Boolean = false, withMacrosDisabled: Boolean = false): Tree = {
-    val universe: global.type = global
-    import universe._
-    val context = callsiteTyper.context
-    val withImplicitFlag = if (!withImplicitViewsDisabled) (context.withImplicitsEnabled[Tree] _) else (context.withImplicitsDisabled[Tree] _)
-    val withMacroFlag = if (!withMacrosDisabled) (context.withMacrosEnabled[Tree] _) else (context.withMacrosDisabled[Tree] _)
-    def withContext(tree: => Tree) = withImplicitFlag(withMacroFlag(tree))
-    def withWrapping(tree: Tree)(op: Tree => Tree) = if (mode == TERMmode) universe.wrappingIntoTerm(tree)(op) else op(tree)
-    def typecheckInternal(tree: Tree) = callsiteTyper.silent(_.typed(universe.duplicateAndKeepPositions(tree), mode, pt), reportAmbiguousErrors = false)
-    withWrapping(tree)(wrappedTree => withContext(typecheckInternal(wrappedTree) match {
-      case universe.analyzer.SilentResultValue(result) =>
-        result
-      case error @ universe.analyzer.SilentTypeError(_) =>
-        if (!silent) throw new TypecheckException(error.err.errPos, error.err.errMsg)
-        universe.EmptyTree
-    }))
-  }
-
-  def untypecheck(tree: Tree): Tree = c.resetLocalAttrs(tree)
 
   implicit class TypeOps(tpe: Type) {
     def typeParams = tpe.typeSymbol.asType.typeParams
@@ -233,36 +273,4 @@ trait MacroCompat {
   def appliedType(tc: Type, ts: Type*): Type = c.universe.appliedType(tc, ts.toList)
 
   def showCode(t: Tree): String = show(t)
-
-  object internal {
-    def constantType(c: Constant): ConstantType = ConstantType(c)
-
-    def polyType(tparams: List[Symbol], tpe: Type): Type = c.universe.polyType(tparams, tpe)
-
-    def enclosingOwner: Symbol = callsiteTyper.context.owner
-
-    object gen {
-      def mkAttributedRef(sym: Symbol): Tree =
-        global.gen.mkAttributedRef(sym)
-
-      def mkAttributedRef(pre: Type, sym: Symbol): Tree =
-        global.gen.mkAttributedRef(pre, sym)
-    }
-
-    object decorators
-
-    def thisType(sym: Symbol): Type = ThisType(sym)
-
-    def singleType(pre: Type, sym: Symbol): Type = SingleType(pre, sym)
-
-    def typeRef(pre: Type, sym: Symbol, args: List[Type]): Type = c.universe.typeRef(pre, sym, args)
-
-    def setInfo(sym: Symbol, tpe: Type): Symbol = sym.setTypeSignature(tpe)
-
-    def newTermSymbol(owner: Symbol, name: TermName, pos: Position = NoPosition, flags: FlagSet = NoFlags): TermSymbol =
-      owner.newTermSymbol(name, pos, flags)
-
-    def substituteSymbols(tree: Tree, from: List[Symbol], to: List[Symbol]): Tree =
-      tree.substituteSymbols(from, to)
-  }
 }

@@ -183,7 +183,7 @@ class TestMacro(val c: whitebox.Context) extends TestUtil {
     util(typeOf[Int])
 
   def const: Tree =
-    TypeTree(internal.constantType(Constant(23)))
+    TypeTree(c.internal.constantType(Constant(23)))
 
   def materialize: Tree = {
     import c.ImplicitCandidate
