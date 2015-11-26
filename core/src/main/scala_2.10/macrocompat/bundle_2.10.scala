@@ -173,7 +173,7 @@ class BundleMacro[C <: Context](val c: C) {
   }
 
   def mkMacroClsAndObjTree(clsDef: ClassDef, objBody: List[Tree]) = {
-    val ClassDef(_, macroClassNme, _, Template(parents, _, body)) = clsDef
+    val ClassDef(_, macroClassNme, _, Template(parents, self, body)) = clsDef
 
     val defns = body collect {
       case MacroImpl(d: DefDef) => d
@@ -197,7 +197,7 @@ class BundleMacro[C <: Context](val c: C) {
 
     val res =
     q"""
-      abstract class $macroClassNme extends ..$parents with _root_.macrocompat.MacroCompat {
+      abstract class $macroClassNme extends ..$parents with _root_.macrocompat.MacroCompat { $self =>
         ..$macroDefns
       }
 
