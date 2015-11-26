@@ -141,6 +141,9 @@ trait MacroCompat {
 
   implicit def cIsContext(cObj: c.type): c0.type = c0
 
+  // On 2.11.x internal is accessible via import c.universe._
+  lazy val internal = c.internal
+
   import c.ImplicitCandidate
 
   implicit def tupleToImplicitCandidate(t: (Type, Tree)): ImplicitCandidate = {
