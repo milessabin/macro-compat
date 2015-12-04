@@ -78,6 +78,10 @@ trait TestUtil {
 class TestMacro(val c: whitebox.Context) extends TestUtil {
   import c.universe._
 
+  // Test for early use of context
+  val intTpe = typeOf[Int]
+  val bounds = internal.typeBounds(typeOf[Any], typeOf[Nothing])
+
   def fooImpl: Tree = {
     val nme0 = TermName(c.freshName)
     val TermName(str0) = nme0

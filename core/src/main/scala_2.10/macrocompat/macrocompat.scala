@@ -49,6 +49,8 @@ trait MacroCompat {
   object c {
     val universe: c0.universe.type = c0.universe
 
+    implicit def cIsContext(cObj: c.type): c0.type = c0
+
     type Expr[T] = c0.Expr[T]
     type Modifiers = c0.Modifiers
     type Name = c0.Name
@@ -136,13 +138,13 @@ trait MacroCompat {
 
       def substituteSymbols(tree: Tree, from: List[Symbol], to: List[Symbol]): Tree =
         tree.substituteSymbols(from, to)
+
+      def typeBounds(lo: Type, hi: Type): TypeBounds = TypeBounds(lo, hi)
     }
   }
 
-  implicit def cIsContext(cObj: c.type): c0.type = c0
-
   // On 2.11.x internal is accessible via import c.universe._
-  lazy val internal = c.internal
+  val internal = c.internal
 
   import c.ImplicitCandidate
 

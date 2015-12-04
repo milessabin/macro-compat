@@ -191,6 +191,7 @@ class BundleMacro[C <: Context](val c: C) {
       case _ => true
     }
 
+    val instClass = newTypeName(c.fresh)
     val instNme = newTermName(c.fresh)
     val forwarders = defns.map { d => mkForwarder(d, macroClassNme, instNme) }
     val macroObjectNme = macroClassNme.toTermName
@@ -202,8 +203,9 @@ class BundleMacro[C <: Context](val c: C) {
       }
 
       object $macroObjectNme {
+        class $instClass[C <: _root_.scala.reflect.macros.Context](val c0: C) extends $macroClassNme
         def $instNme(c1: _root_.scala.reflect.macros.Context): $macroClassNme { val c0: c1.type } =
-          new $macroClassNme { val c0: c1.type = c1 }
+          new $instClass[c1.type](c1)
 
         ..$forwarders
 
