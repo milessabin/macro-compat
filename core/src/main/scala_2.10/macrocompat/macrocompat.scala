@@ -202,6 +202,8 @@ trait MacroCompat {
     def dealias: Type = tpe.normalize
 
     def finalResultType: Type = (tpe: global.Type).finalResultType
+
+    def paramLists: List[List[Symbol]] = tpe.paramss map (_ map (x => x: Symbol))
   }
 
   implicit class MethodSymbolOps(sym: MethodSymbol) {
