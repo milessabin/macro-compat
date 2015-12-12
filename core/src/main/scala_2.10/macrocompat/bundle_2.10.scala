@@ -42,6 +42,7 @@ class BundleMacro[C <: Context](val c: C) {
     def unapply(t: Tree): Option[Tree] = t match {
       case AppliedTypeTree(ExprNme, List(arg)) => Some(arg)
       case AppliedTypeTree(Select(_, ExprNme), List(arg)) => Some(arg)
+      case AppliedTypeTree(Ident(ExprNme), List(arg)) => Some(arg)
       case _ => None
     }
   }
