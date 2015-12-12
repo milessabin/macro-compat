@@ -62,6 +62,8 @@ object Test {
     implicit def materialize[T, Ann]: Aux[T, Ann] = macro TestMacro.annotationTypeImpl[T, Ann]
     def instance[T, Ann0]: Aux[T, Ann0] = new AnnotationType[T] { type Ann = Ann0 }
   }
+
+  implicit def convertImpl[T](t: T): String = macro TestMacro.convertImpl[T]
 }
 
 @bundle
@@ -197,4 +199,6 @@ class TestMacro(val c: whitebox.Context) extends TestUtil {
     val s = sym.name.toString
     q"List($s)"
   }
+
+  def convertImpl[T](t: Expr[T]): Tree = ???
 }
