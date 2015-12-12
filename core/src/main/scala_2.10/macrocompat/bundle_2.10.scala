@@ -98,7 +98,9 @@ class BundleMacro[C <: Context](val c: C) {
       }
     })
 
-    val call = q""" $instNme($ctxNme).${name.toTermName}[..$targs](...$cargss) """
+    val compatCtx = q""" new _root_.macrocompat.CompatContext[$ctxNme.type]($ctxNme) """
+
+    val call = q""" $instNme($compatCtx).${name.toTermName}[..$targs](...$cargss) """
     val (ctpt, crhs) =
       tpt match {
         case ExprE(tpt) => (
@@ -209,9 +211,11 @@ class BundleMacro[C <: Context](val c: C) {
       }
 
       object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
-        class $instClass[C <: _root_.scala.reflect.macros.Context](val c0: C) extends $macroClassNme
-        def $instNme(c1: _root_.scala.reflect.macros.Context): $macroClassNme { val c0: c1.type } =
-          new $instClass[c1.type](c1)
+        class $instClass[C0 <: _root_.scala.reflect.macros.Context](val c: _root_.macrocompat.CompatContext[C0]) extends $macroClassNme {
+          type C = C0
+        }
+        def $instNme[C <: _root_.scala.reflect.macros.Context](c1: _root_.macrocompat.CompatContext[C]): $instClass[C] =
+          new $instClass[C](c1)
 
         ..$forwarders
 

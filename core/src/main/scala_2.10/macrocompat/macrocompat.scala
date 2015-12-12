@@ -20,15 +20,86 @@ import scala.language.experimental.macros
 
 import scala.reflect.macros.{ Context, TypecheckException }
 
-trait MacroCompat {
-  val c0: Context
+trait ProxyContext[C <: Context] extends Context {
+  val c: C
+  lazy val universe: c.universe.type = c.universe
+  import universe._
 
-  import c.universe._
+  def Expr[T: WeakTypeTag](tree: Tree) = c.Expr[T](tree)
+  override val Expr = c.Expr
+  def TypeTag[T](tpe: Type) = c.TypeTag(tpe)
+  def WeakTypeTag[T](tpe: Type) = c.WeakTypeTag(tpe)
+
+  val mirror = c.mirror
+  type PrefixType = c.PrefixType
+  val prefix = c.prefix
+
+  val enclosingClass = c.enclosingClass
+  val enclosingImplicits = c.enclosingImplicits
+  val enclosingMacros = c.enclosingMacros
+  val enclosingMethod = c.enclosingMethod
+  val enclosingPosition = c.enclosingPosition
+  val enclosingRun = c.enclosingRun
+  val enclosingUnit = c.enclosingUnit
+  val macroApplication = c.macroApplication
+
+  def eval[T](expr: Expr[T]) = c.eval(expr)
+
+  def literalNull = c.literalNull
+  def literalUnit = c.literalUnit
+  def literalTrue = c.literalTrue
+  def literalFalse = c.literalFalse
+  def literal(x: Boolean) = c.literal(x)
+  def literal(x: Byte) = c.literal(x)
+  def literal(x: Short) = c.literal(x)
+  def literal(x: Int) = c.literal(x)
+  def literal(x: Long) = c.literal(x)
+  def literal(x: Float) = c.literal(x)
+  def literal(x: Double) = c.literal(x)
+  def literal(x: String) = c.literal(x)
+  def literal(x: Char) = c.literal(x)
+
+  def abort(pos: Position, msg: String) = c.abort(pos, msg)
+  def echo(pos: Position, msg: String) = c.echo(pos, msg)
+  def error(pos: Position, msg: String) = c.error(pos, msg)
+  def hasErrors = c.hasErrors
+  def hasWarnings = c.hasWarnings
+  def info(pos: Position, msg: String, force: Boolean) = c.info(pos, msg, force)
+  def warning(pos: Position, msg: String) = c.warning(pos, msg)
+
+  def classPath = c.classPath
+  def compilerSettings = c.compilerSettings
+  def settings = c.settings
+
+  def fresh[NameType <: Name](name: NameType) = c.fresh(name)
+  def fresh(name: String) = c.fresh(name)
+  def fresh() = c.fresh()
+
+  def parse(code: String) = c.parse(code)
+
+  def reifyEnclosingRuntimeClass = c.reifyEnclosingRuntimeClass
+  def reifyRuntimeClass(tpe: Type, concrete: Boolean = false) = c.reifyRuntimeClass(tpe, concrete)
+  def reifyTree(universe: Tree, mirror: Tree, tree: Tree) = c.reifyTree(universe, mirror, tree)
+  def reifyType(universe: Tree, mirror: Tree, tpe: Type, concrete: Boolean = false) = c.reifyType(universe, mirror, tpe, concrete)
+  def unreifyTree(tree: Tree) = c.unreifyTree(tree)
+
+  def inferImplicitValue(pt: Type, silent: Boolean = true, withMacrosDisabled: Boolean = false, pos: Position = enclosingPosition) = c.inferImplicitValue(pt, silent, withMacrosDisabled, pos)
+  def inferImplicitView(tree: Tree, from: Type, to: Type, silent: Boolean = true, withMacrosDisabled: Boolean = false, pos: Position = enclosingPosition) = c.inferImplicitView(tree, from, to, silent, withMacrosDisabled, pos)
+  def openImplicits = c.openImplicits
+  def openMacros = c.openMacros
+  def resetAllAttrs(tree: Tree) = c.resetAllAttrs(tree)
+  def resetLocalAttrs(tree: Tree) = c.resetLocalAttrs(tree)
+  def typeCheck(tree: Tree, pt: Type = WildcardType, silent: Boolean = true, withImplicitViewsDisabled: Boolean = false, withMacrosDisabled: Boolean = false) = c.typeCheck(tree, pt, silent, withImplicitViewsDisabled, withMacrosDisabled)
+}
+
+class CompatContext[C <: Context](val c: C) extends ProxyContext[C] {
+  import universe._
 
   object GlobalConversions {
+
     val global = c.universe.asInstanceOf[scala.tools.nsc.Global]
 
-    val callsiteTyper = c0.asInstanceOf[scala.reflect.macros.runtime.Context].callsiteTyper.asInstanceOf[global.analyzer.Typer]
+    val callsiteTyper = c.asInstanceOf[scala.reflect.macros.runtime.Context].callsiteTyper.asInstanceOf[global.analyzer.Typer]
     val globalContext = callsiteTyper.context
 
     implicit def globalType(tpe: Type): global.Type = tpe.asInstanceOf[global.Type]
@@ -46,107 +117,95 @@ trait MacroCompat {
 
   import GlobalConversions._
 
-  object c {
-    val universe: c0.universe.type = c0.universe
+  def freshName() = c.fresh
+  def freshName(name: String) = c.fresh(name)
+  def freshName[NameType <: Name](name: NameType) = c.fresh(name)
 
-    implicit def cIsContext(cObj: c.type): c0.type = c0
+  case class ImplicitCandidate(pre: Type, sym: Symbol, pt: Type, tree: Tree)
 
-    type Expr[T] = c0.Expr[T]
-    type Modifiers = c0.Modifiers
-    type Name = c0.Name
-    type Position = c0.Position
-    type Scope = c0.Scope
-    type Symbol = c0.Symbol
-    type TermName = c0.TermName
-    type Tree = c0.Tree
-    type Type = c0.Type
-    type TypeName = c0.TypeName
-    type TypeTag[T] = c0.TypeTag[T]
-    type WeakTypeTag[T] = c0.WeakTypeTag[T]
+  object ImplicitCandidate {
+    def unapply(t: (Type, Tree)): Option[(Type, Symbol, Type, Tree)] = tryUnapply(t).right.toOption
 
-    def freshName() = c.fresh
-    def freshName(name: String) = c.fresh(name)
-    def freshName[NameType <: Name](name: NameType) = c.fresh(name)
-
-    case class ImplicitCandidate(pre: Type, sym: Symbol, pt: Type, tree: Tree)
-
-    object ImplicitCandidate {
-      def unapply(t: (Type, Tree)): Option[(Type, Symbol, Type, Tree)] = tryUnapply(t).right.toOption
-
-      def tryUnapply(t: (Type, Tree)): Either[String, (Type, Symbol, Type, Tree)] = {
-        val (pt, tree) = t
-        globalContext.openImplicits.filter(oi => oi.pt == pt && oi.tree == tree) match {
-          case List(oi) => Right((oi.info.pre, oi.info.sym, oi.pt, oi.tree))
-          case Nil => Left(s"Failed to identify ImplicitCandidate for $t, none match")
-          case xs => Left(s"Failed to identify ImplicitCandidate for $t, ${xs.size} match")
-        }
+    def tryUnapply(t: (Type, Tree)): Either[String, (Type, Symbol, Type, Tree)] = {
+      val (pt, tree) = t
+      globalContext.openImplicits.filter(oi => oi.pt == pt && oi.tree == tree) match {
+        case List(oi) => Right((oi.info.pre, oi.info.sym, oi.pt, oi.tree))
+        case Nil => Left(s"Failed to identify ImplicitCandidate for $t, none match")
+        case xs => Left(s"Failed to identify ImplicitCandidate for $t, ${xs.size} match")
       }
-    }
-
-    type TypecheckMode = Int
-    val TERMmode = global.analyzer.EXPRmode
-    val TYPEmode = global.analyzer.HKmode
-
-    def typecheck(tree: Tree, mode: TypecheckMode = TERMmode, pt: Type = WildcardType, silent: Boolean = false, withImplicitViewsDisabled: Boolean = false, withMacrosDisabled: Boolean = false): Tree = {
-      val universe: global.type = global
-      type Tree = universe.Tree
-      type Type = universe.Type
-      val context = callsiteTyper.context
-      val withImplicitFlag = if (!withImplicitViewsDisabled) (context.withImplicitsEnabled[Tree] _) else (context.withImplicitsDisabled[Tree] _)
-      val withMacroFlag = if (!withMacrosDisabled) (context.withMacrosEnabled[Tree] _) else (context.withMacrosDisabled[Tree] _)
-      def withContext(tree: => Tree) = withImplicitFlag(withMacroFlag(tree))
-      def withWrapping(tree: Tree)(op: Tree => Tree) = if (mode == TERMmode) universe.wrappingIntoTerm(tree)(op) else op(tree)
-      def typecheckInternal(tree: Tree) = callsiteTyper.silent(_.typed(universe.duplicateAndKeepPositions(tree), mode, pt), reportAmbiguousErrors = false)
-      withWrapping(tree)(wrappedTree => withContext(typecheckInternal(wrappedTree) match {
-        case universe.analyzer.SilentResultValue(result) =>
-          result
-        case error @ universe.analyzer.SilentTypeError(_) =>
-          if (!silent) throw new TypecheckException(error.err.errPos, error.err.errMsg)
-          universe.EmptyTree
-      }))
-    }
-
-    def untypecheck(tree: Tree): Tree = c.resetLocalAttrs(tree)
-
-    object internal {
-      def constantType(c: Constant): ConstantType = ConstantType(c)
-
-      def polyType(tparams: List[Symbol], tpe: Type): Type = c.universe.polyType(tparams, tpe)
-
-      def enclosingOwner: Symbol = callsiteTyper.context.owner
-
-      object gen {
-        def mkAttributedRef(sym: Symbol): Tree =
-          global.gen.mkAttributedRef(sym)
-
-        def mkAttributedRef(pre: Type, sym: Symbol): Tree =
-          global.gen.mkAttributedRef(pre, sym)
-      }
-
-      object decorators
-
-      def thisType(sym: Symbol): Type = ThisType(sym)
-
-      def singleType(pre: Type, sym: Symbol): Type = SingleType(pre, sym)
-
-      def typeRef(pre: Type, sym: Symbol, args: List[Type]): Type = c.universe.typeRef(pre, sym, args)
-
-      def setInfo(sym: Symbol, tpe: Type): Symbol = sym.setTypeSignature(tpe)
-
-      def newTermSymbol(owner: Symbol, name: TermName, pos: Position = NoPosition, flags: FlagSet = NoFlags): TermSymbol =
-        owner.newTermSymbol(name, pos, flags)
-
-      def substituteSymbols(tree: Tree, from: List[Symbol], to: List[Symbol]): Tree =
-        tree.substituteSymbols(from, to)
-
-      def typeBounds(lo: Type, hi: Type): TypeBounds = TypeBounds(lo, hi)
     }
   }
 
-  // On 2.11.x internal is accessible via import c.universe._
-  val internal = c.internal
+  type TypecheckMode = Int
+  val TERMmode = global.analyzer.EXPRmode
+  val TYPEmode = global.analyzer.HKmode
+
+  def typecheck(tree: Tree, mode: TypecheckMode = TERMmode, pt: Type = WildcardType, silent: Boolean = false, withImplicitViewsDisabled: Boolean = false, withMacrosDisabled: Boolean = false): Tree = {
+    val universe: global.type = global
+    type Tree = universe.Tree
+    type Type = universe.Type
+    val context = callsiteTyper.context
+    val withImplicitFlag = if (!withImplicitViewsDisabled) (context.withImplicitsEnabled[Tree] _) else (context.withImplicitsDisabled[Tree] _)
+    val withMacroFlag = if (!withMacrosDisabled) (context.withMacrosEnabled[Tree] _) else (context.withMacrosDisabled[Tree] _)
+    def withContext(tree: => Tree) = withImplicitFlag(withMacroFlag(tree))
+    def withWrapping(tree: Tree)(op: Tree => Tree) = if (mode == TERMmode) universe.wrappingIntoTerm(tree)(op) else op(tree)
+    def typecheckInternal(tree: Tree): universe.analyzer.SilentResult[Tree] =
+      callsiteTyper.silent(_.typed(universe.duplicateAndKeepPositions(tree), mode, pt), reportAmbiguousErrors = false)
+    withWrapping(tree)(wrappedTree => withContext(typecheckInternal(wrappedTree) match {
+      case universe.analyzer.SilentResultValue(result) =>
+        result
+      case error @ universe.analyzer.SilentTypeError(_) =>
+        if (!silent) throw new TypecheckException(error.err.errPos, error.err.errMsg)
+        universe.EmptyTree
+    }))
+  }
+
+  def untypecheck(tree: Tree): Tree = c.resetLocalAttrs(tree)
+
+  object internal {
+    def constantType(c: Constant): ConstantType = ConstantType(c)
+
+    def polyType(tparams: List[Symbol], tpe: Type): Type = c.universe.polyType(tparams, tpe)
+
+    def enclosingOwner: Symbol = callsiteTyper.context.owner
+
+    object gen {
+      def mkAttributedRef(sym: Symbol): Tree =
+        global.gen.mkAttributedRef(sym)
+
+      def mkAttributedRef(pre: Type, sym: Symbol): Tree =
+        global.gen.mkAttributedRef(pre, sym)
+    }
+
+    object decorators
+
+    def thisType(sym: Symbol): Type = ThisType(sym)
+
+    def singleType(pre: Type, sym: Symbol): Type = SingleType(pre, sym)
+
+    def typeRef(pre: Type, sym: Symbol, args: List[Type]): Type = c.universe.typeRef(pre, sym, args)
+
+    def setInfo(sym: Symbol, tpe: Type): Symbol = sym.setTypeSignature(tpe)
+
+    def newTermSymbol(owner: Symbol, name: TermName, pos: Position = NoPosition, flags: FlagSet = NoFlags): TermSymbol =
+      owner.newTermSymbol(name, pos, flags)
+
+    def substituteSymbols(tree: Tree, from: List[Symbol], to: List[Symbol]): Tree =
+      tree.substituteSymbols(from, to)
+
+    def typeBounds(lo: Type, hi: Type): TypeBounds = TypeBounds(lo, hi)
+  }
+}
+
+trait MacroCompat { outer =>
+  type C <: Context
+  val c: CompatContext[C]
+  import c.universe._
+  import c.GlobalConversions._
 
   import c.ImplicitCandidate
+
+  val internal = c.internal
 
   implicit def tupleToImplicitCandidate(t: (Type, Tree)): ImplicitCandidate = {
     ImplicitCandidate.tryUnapply(t) match {
@@ -283,4 +342,21 @@ trait MacroCompat {
   def appliedType(tc: Type, ts: Type*): Type = c.universe.appliedType(tc, ts.toList)
 
   def showCode(t: Tree): String = show(t)
+
+  /*
+  // forwarding methods for backwards compatability with 1.1.0
+
+  type TypecheckMode = c.TypecheckMode
+  val TERMmode = c.TERMmode
+  val TYPEmode = c.TYPEmode
+  def typecheck(tree: Tree, mode: TypecheckMode = TERMmode, pt: Type = WildcardType, silent: Boolean = false, withImplicitViewsDisabled: Boolean = false, withMacrosDisabled: Boolean = false): Tree =
+    c.typecheck(tree, mode, pt, silent, withImplicitViewsDisabled, withMacrosDisabled)
+  def untypecheck(tree: Tree): Tree = c.untypecheck(tree)
+
+  def freshName() = c.freshName()
+  def freshName(name: String) = c.freshName(name)
+  def freshName[NameType <: Name](name: NameType) = c.freshName(name)
+
+  def mkContextOps(c: Context): this.type = this
+  */
 }
