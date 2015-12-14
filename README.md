@@ -67,12 +67,12 @@ class TestMacro(val c: whitebox.Context) {
 }
 ```
 
-This code compiles on both Scala 2.11.x and 2.10.x.
+This code compiles on Scala 2.10.x, 2.11.x and 2.12.x.
 
 The `@bundle` annotation is implemented as a macro annotation via the [macro-paradise][macro-paradise] compiler
-plugin. On Scala 2.11.x the annotation is simply eliminated during compilation, leaving no trace in the resulting
-binaries. On Scala 2.10.x the annotation macro transforms the macro bundle class to an object definition which is
-compatible with the 2.10.x macro API.
+plugin. On Scala 2.11.x and 2.12.x the annotation is simply eliminated during compilation, leaving no trace in the
+resulting binaries. On Scala 2.10.x the annotation macro transforms the macro bundle class to an object definition
+which is compatible with the 2.10.x macro API.
 
 ## Current status
 
@@ -99,7 +99,7 @@ resolvers ++= Seq(
 )
 ```
 
-Builds are available for Scala 2.11.x and 2.10.x for Scala JDK and Scala.js.
+Builds are available for Scala 2.10.x, 2.11.x and 2.12.x for Scala JDK and Scala.js.
 
 ```scala
 libraryDependencies ++= Seq(
