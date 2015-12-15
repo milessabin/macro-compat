@@ -164,17 +164,22 @@ class BundleMacro[C <: Context](val c: C) {
         val res = ClassDef(mods, macroClassNme, tparams, Template(newParents, self, newBody))
         fixPositions(res)
 
-      case List(clsDef: ClassDef) => mkMacroClsAndObjTree(clsDef, Nil)
+      case List(clsDef: ClassDef) => mkMacroClsAndObjTree(clsDef, None)
 
-      case List(clsDef: ClassDef, q"object $objName { ..$objBody }") => mkMacroClsAndObjTree(clsDef, objBody)
+      case List(clsDef: ClassDef, objDef: ModuleDef) => mkMacroClsAndObjTree(clsDef, Some(objDef))
 
       case other =>
         c.abort(c.enclosingPosition, "Unexpected tree shape.")
     }
   }
 
-  def mkMacroClsAndObjTree(clsDef: ClassDef, objBody: List[Tree]) = {
+  def mkMacroClsAndObjTree(clsDef: ClassDef, objDef: Option[ModuleDef]) = {
     val ClassDef(_, macroClassNme, _, Template(parents, self, body)) = clsDef
+
+    val (objEarlydefns, objParents, objBody) = objDef match {
+      case Some(q"$objMods object $objTname extends { ..$objEarlydefns } with ..$objParents { $objSelf => ..$objBody }") => (objEarlydefns, objParents, objBody)
+      case None => (Nil, List(tq"_root_.scala.AnyRef"), Nil)
+    }
 
     val defns = body collect {
       case MacroImpl(d: DefDef) => d
@@ -203,7 +208,7 @@ class BundleMacro[C <: Context](val c: C) {
         ..$macroDefns
       }
 
-      object $macroObjectNme {
+      object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
         class $instClass[C <: _root_.scala.reflect.macros.Context](val c0: C) extends $macroClassNme
         def $instNme(c1: _root_.scala.reflect.macros.Context): $macroClassNme { val c0: c1.type } =
           new $instClass[c1.type](c1)
