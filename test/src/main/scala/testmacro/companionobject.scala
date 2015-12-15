@@ -29,3 +29,27 @@ class ClassWithCompanionObject(val c: whitebox.Context)
 object ClassWithCompanionObject {
   def foo = 1
 }
+
+
+trait ClassWithCompanionObjectMixin {
+  def bar = 1
+}
+
+@macrocompat.bundle
+class ClassWithCompanionObjectWithMixin(val c: whitebox.Context)
+
+object ClassWithCompanionObjectWithMixin extends ClassWithCompanionObjectMixin {
+  def foo = 1
+}
+
+
+abstract class ClassWithCompanionObjectParent {
+  def bar = 1
+}
+
+@macrocompat.bundle
+class ClassWithCompanionObjectWithParent(val c: whitebox.Context)
+
+object ClassWithCompanionObjectWithParent extends ClassWithCompanionObjectParent {
+  def foo = 1
+}
