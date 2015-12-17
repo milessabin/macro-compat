@@ -180,7 +180,10 @@ trait MacroCompat {
   lazy val typeNames = tpnme
 
   implicit class TypeOps(tpe: Type) {
-    def typeParams = tpe.typeSymbol.asType.typeParams
+    def typeParams = tpe match {
+      case TypeRef(_, sym, _) => sym.asType.typeParams
+      case _ => tpe.typeSymbol.asType.typeParams
+    }
 
     def typeArgs: List[Type] = tpe match {
       case TypeRef(_, _, args) => args
