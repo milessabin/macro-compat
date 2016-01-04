@@ -18,7 +18,9 @@ package macrocompat
 
 import scala.language.experimental.macros
 
-import scala.reflect.macros.{ Context, TypecheckException }
+import scala.reflect.macros.{ Context, TypecheckException, Universe }
+
+class ProxyUniverse[U <: Universe] extends Universe
 
 trait ProxyContext[C <: Context] extends Context {
   val c: C
@@ -343,7 +345,6 @@ trait MacroCompat { outer =>
 
   def showCode(t: Tree): String = show(t)
 
-  /*
   // forwarding methods for backwards compatability with 1.1.0
 
   type TypecheckMode = c.TypecheckMode
@@ -358,5 +359,4 @@ trait MacroCompat { outer =>
   def freshName[NameType <: Name](name: NameType) = c.freshName(name)
 
   def mkContextOps(c: Context): this.type = this
-  */
 }
