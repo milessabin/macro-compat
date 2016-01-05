@@ -98,7 +98,9 @@ class BundleMacro[C <: Context](val c: C) {
       }
     })
 
-    val call = q""" $instNme($ctxNme).${name.toTermName}[..$targs](...$cargss) """
+    val compatCtx = q""" new _root_.macrocompat.CompatContext[$ctxNme.type]($ctxNme) """
+
+    val call = q""" $instNme($compatCtx).${name.toTermName}[..$targs](...$cargss) """
     val (ctpt, crhs) =
       tpt match {
         case ExprE(tpt) => (
@@ -148,22 +150,6 @@ class BundleMacro[C <: Context](val c: C) {
 
   def bundleImpl(annottees: Tree*): Tree = {
     annottees match {
-      case List(ClassDef(mods, macroClassNme, tparams, Template(parents, self, body)))
-        if mods.hasFlag(ABSTRACT) =>
-        val newParents =
-          tq"_root_.macrocompat.MacroCompat" ::
-          parents.filter {
-            case tq"scala.AnyRef" => false
-            case _ => true
-          }
-        val origCtxNme = newTermName("c")
-        val newBody = body filter {
-          case ValDef(_, nme, _, _) if nme == origCtxNme => false
-          case _ => true
-        }
-        val res = ClassDef(mods, macroClassNme, tparams, Template(newParents, self, newBody))
-        fixPositions(res)
-
       case List(clsDef: ClassDef) => mkMacroClsAndObjTree(clsDef, None)
 
       case List(clsDef: ClassDef, objDef: ModuleDef) => mkMacroClsAndObjTree(clsDef, Some(objDef))
@@ -202,16 +188,33 @@ class BundleMacro[C <: Context](val c: C) {
     val forwarders = defns.map { d => mkForwarder(d, macroClassNme, instNme) }
     val macroObjectNme = macroClassNme.toTermName
 
+    // The private forwarding defintions (appliedType, Modifiers) below are needed because they need
+    // to appear to be accessible as a result of import c.universe._. They can't be added to
+    // c.compatUniverse because that results in import ambiguities. Note that the definitions are
+    // private to avoid override conflicts in stacks of inherited bundles.
     val res =
     q"""
-      abstract class $macroClassNme extends ..$parents with _root_.macrocompat.MacroCompat { $self =>
+      abstract class $macroClassNme extends ..$parents { $self =>
+        type C <: _root_.scala.reflect.macros.Context
+        val c: _root_.macrocompat.CompatContext[C]
+
+        import c.compatUniverse._
+
+        private def appliedType(tc: c.universe.Type, ts: _root_.scala.collection.immutable.List[c.universe.Type]): c.universe.Type = c.universe.appliedType(tc, ts)
+
+        private def appliedType(tc: c.universe.Type, ts: c.universe.Type*): c.universe.Type = c.universe.appliedType(tc, ts.toList)
+
+        private val Modifiers = c.compatUniverse.CompatModifiers
+
         ..$macroDefns
       }
 
       object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
-        class $instClass[C <: _root_.scala.reflect.macros.Context](val c0: C) extends $macroClassNme
-        def $instNme(c1: _root_.scala.reflect.macros.Context): $macroClassNme { val c0: c1.type } =
-          new $instClass[c1.type](c1)
+        class $instClass[C0 <: _root_.scala.reflect.macros.Context](val c: _root_.macrocompat.CompatContext[C0]) extends $macroClassNme {
+          type C = C0
+        }
+        def $instNme[C <: _root_.scala.reflect.macros.Context](c1: _root_.macrocompat.CompatContext[C]): $instClass[C] =
+          new $instClass[C](c1)
 
         ..$forwarders
 
