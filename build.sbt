@@ -139,7 +139,10 @@ lazy val publishSettings = Seq(
 )
 
 lazy val mimaSettings = mimaDefaultSettings ++ Seq(
-  previousArtifact := Some(organization.value %% moduleName.value % "1.1.0"),
+  previousArtifact := {
+    if(scalaVersion.value == "2.12.0-M3") None
+    else Some(organization.value %% moduleName.value % "1.1.0")
+  },
 
   binaryIssueFilters ++= {
     // Filtering the methods that were added since the checked version
