@@ -213,25 +213,11 @@ class BundleMacro[C <: Context](val c: C) {
 
     // There should be a better way of doing this, but it doesn't seem to be possible
     // to abstract over class vs. trait in a quasiquote.
-    val res =
+    val macroClass =
       if(mods.hasFlag(TRAIT))
         q"""
           $mods trait $macroClassNme[..$tparams] extends ..$parents { $self =>
             ..$macroBody
-          }
-
-          object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
-            ..$objBody
-          }
-        """
-      else if(mods0.hasFlag(ABSTRACT))
-        q"""
-          $mods class $macroClassNme[..$tparams] extends ..$parents { $self =>
-            ..$macroBody
-          }
-
-          object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
-            ..$objBody
           }
         """
       else
@@ -239,7 +225,17 @@ class BundleMacro[C <: Context](val c: C) {
           $mods class $macroClassNme[..$tparams] extends ..$parents { $self =>
             ..$macroBody
           }
+        """
 
+    val macroObject =
+      if(mods0.hasFlag(ABSTRACT))
+        q"""
+          object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
+            ..$objBody
+          }
+        """
+      else
+        q"""
           object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
             class $instClass[C0 <: _root_.scala.reflect.macros.Context](val c: _root_.macrocompat.CompatContext[C0]) extends $macroClassNme {
               type C = C0
@@ -252,6 +248,13 @@ class BundleMacro[C <: Context](val c: C) {
             ..$objBody
           }
         """
+
+    val res =
+      q"""
+        $macroClass
+
+        $macroObject
+      """
 
     fixPositions(res)
   }
