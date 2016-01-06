@@ -160,12 +160,14 @@ class BundleMacro[C <: Context](val c: C) {
   }
 
   def mkMacroClsAndObjTree(clsDef: ClassDef, objDef: Option[ModuleDef]) = {
-    val ClassDef(_, macroClassNme, _, Template(parents, self, body)) = clsDef
+    val ClassDef(mods0, macroClassNme, tparams, Template(parents, self, body)) = clsDef
 
     val (objEarlydefns, objParents, objBody) = objDef match {
       case Some(q"$objMods object $objTname extends { ..$objEarlydefns } with ..$objParents { $objSelf => ..$objBody }") => (objEarlydefns, objParents, objBody)
       case None => (Nil, List(tq"_root_.scala.AnyRef"), Nil)
     }
+
+    val mods = Modifiers(mods0.flags|ABSTRACT)
 
     val defns = body collect {
       case MacroImpl(d: DefDef) => d
@@ -174,10 +176,11 @@ class BundleMacro[C <: Context](val c: C) {
     // For now all macro bundles must have a Context constructor argument named "c". See,
     //   https://gitter.im/scala/scala?at=55ef0ffe24362d5253fe3a51
     val origCtxNme = newTermName("c")
+    val mixinCtor = newTermName("$init$")
 
     val PARAMACCESSOR = (1L << 29).asInstanceOf[FlagSet]
     val macroDefns = body filter {
-      case d: DefDef if d.name == nme.CONSTRUCTOR => false
+      case d: DefDef if d.name == nme.CONSTRUCTOR || d.name == mixinCtor => false
       case ValDef(mods, _, _, _) if mods.hasFlag(PARAMACCESSOR) => false
       case ValDef(_, nme, _, _) if nme == origCtxNme => false
       case _ => true
@@ -192,9 +195,8 @@ class BundleMacro[C <: Context](val c: C) {
     // to appear to be accessible as a result of import c.universe._. They can't be added to
     // c.compatUniverse because that results in import ambiguities. Note that the definitions are
     // private to avoid override conflicts in stacks of inherited bundles.
-    val res =
-    q"""
-      abstract class $macroClassNme extends ..$parents { $self =>
+    val macroBody =
+      q"""
         type C <: _root_.scala.reflect.macros.Context
         val c: _root_.macrocompat.CompatContext[C]
 
@@ -207,20 +209,46 @@ class BundleMacro[C <: Context](val c: C) {
         private val Modifiers = c.compatUniverse.CompatModifiers
 
         ..$macroDefns
-      }
+      """
 
-      object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
-        class $instClass[C0 <: _root_.scala.reflect.macros.Context](val c: _root_.macrocompat.CompatContext[C0]) extends $macroClassNme {
-          type C = C0
+    // There should be a better way of doing this, but it doesn't seem to be possible
+    // to abstract over class vs. trait in a quasiquote.
+    val macroClass =
+      if(mods.hasFlag(TRAIT))
+        q"""
+          $mods trait $macroClassNme[..$tparams] extends ..$parents { $self =>
+            ..$macroBody
+          }
+        """
+      else
+        q"""
+          $mods class $macroClassNme[..$tparams] extends ..$parents { $self =>
+            ..$macroBody
+          }
+        """
+
+    val macroObject =
+      q"""
+        object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
+          class $instClass[C0 <: _root_.scala.reflect.macros.Context](val c: _root_.macrocompat.CompatContext[C0]) extends $macroClassNme {
+            type C = C0
+          }
+          def $instNme[C <: _root_.scala.reflect.macros.Context](c1: _root_.macrocompat.CompatContext[C]): $instClass[C] =
+            new $instClass[C](c1)
+
+          ..$forwarders
+
+          ..$objBody
         }
-        def $instNme[C <: _root_.scala.reflect.macros.Context](c1: _root_.macrocompat.CompatContext[C]): $instClass[C] =
-          new $instClass[C](c1)
+      """
 
-        ..$forwarders
+    val res =
+      q"""
+        $macroClass
 
-        ..$objBody
-      }
-    """
+        $macroObject
+      """
+
     fixPositions(res)
   }
 }

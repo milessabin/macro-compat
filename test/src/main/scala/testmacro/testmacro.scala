@@ -79,7 +79,7 @@ trait TestUtil {
 }
 
 @bundle
-class TestMacro(val c: whitebox.Context) extends TestUtil {
+class TestMacro(val c: whitebox.Context) extends AnyRef with TestUtil {
   import c.universe._
 
   // Test for early use of context
