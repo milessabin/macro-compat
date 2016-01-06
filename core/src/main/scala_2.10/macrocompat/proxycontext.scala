@@ -24,7 +24,6 @@ abstract class ProxyContext extends Context {
   import universe._
 
   def Expr[T: WeakTypeTag](tree: Tree) = c.Expr[T](tree)
-  override val Expr = c.Expr
   def TypeTag[T](tpe: Type) = c.TypeTag(tpe)
   def WeakTypeTag[T](tpe: Type) = c.WeakTypeTag(tpe)
 
