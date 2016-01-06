@@ -69,6 +69,14 @@ object Test {
 }
 
 @bundle
+abstract class TestMacroBase {
+  val c: whitebox.Context
+  import c.universe._
+
+  def abstractClassAbstractMethod: Tree
+}
+
+@bundle
 trait TestUtil {
   val c: whitebox.Context
   import c.universe._
@@ -81,7 +89,7 @@ trait TestUtil {
 }
 
 @bundle
-class TestMacro(val c: whitebox.Context) extends AnyRef with TestUtil {
+class TestMacro(val c: whitebox.Context) extends TestMacroBase with TestUtil {
   import c.universe._
 
   // Test for early use of context
@@ -216,4 +224,6 @@ class TestMacro(val c: whitebox.Context) extends AnyRef with TestUtil {
   }
 
   def traitAbstractMethod: Tree = q"()"
+
+  def abstractClassAbstractMethod: Tree = q"()"
 }

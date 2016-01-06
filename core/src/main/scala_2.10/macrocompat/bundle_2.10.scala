@@ -220,6 +220,12 @@ class BundleMacro[C <: Context](val c: C) {
             ..$macroBody
           }
         """
+      else if(mods0.hasFlag(ABSTRACT))
+        q"""
+          $mods class $macroClassNme[..$tparams] extends ..$parents { $self =>
+            ..$macroBody
+          }
+        """
       else
         q"""
           $mods class $macroClassNme[..$tparams] extends ..$parents { $self =>
