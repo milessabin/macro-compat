@@ -76,6 +76,8 @@ trait TestUtil {
   def util(t: Type): Tree = {
     q""" () """
   }
+
+  def traitAbstractMethod: Tree
 }
 
 @bundle
@@ -212,4 +214,6 @@ class TestMacro(val c: whitebox.Context) extends AnyRef with TestUtil {
     val tree = i.tree.toString
     q"($pre, $sym, $pt, $tree)"
   }
+
+  def traitAbstractMethod: Tree = q"()"
 }

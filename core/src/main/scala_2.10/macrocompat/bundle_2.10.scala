@@ -213,7 +213,7 @@ class BundleMacro[C <: Context](val c: C) {
 
     // There should be a better way of doing this, but it doesn't seem to be possible
     // to abstract over class vs. trait in a quasiquote.
-    val macroClass =
+    val res =
       if(mods.hasFlag(TRAIT))
         q"""
           $mods trait $macroClassNme[..$tparams] extends ..$parents { $self =>
@@ -225,29 +225,19 @@ class BundleMacro[C <: Context](val c: C) {
           $mods class $macroClassNme[..$tparams] extends ..$parents { $self =>
             ..$macroBody
           }
-        """
 
-    val macroObject =
-      q"""
-        object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
-          class $instClass[C0 <: _root_.scala.reflect.macros.Context](val c: _root_.macrocompat.CompatContext[C0]) extends $macroClassNme {
-            type C = C0
+          object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
+            class $instClass[C0 <: _root_.scala.reflect.macros.Context](val c: _root_.macrocompat.CompatContext[C0]) extends $macroClassNme {
+              type C = C0
+            }
+            def $instNme[C <: _root_.scala.reflect.macros.Context](c1: _root_.macrocompat.CompatContext[C]): $instClass[C] =
+              new $instClass[C](c1)
+
+            ..$forwarders
+
+            ..$objBody
           }
-          def $instNme[C <: _root_.scala.reflect.macros.Context](c1: _root_.macrocompat.CompatContext[C]): $instClass[C] =
-            new $instClass[C](c1)
-
-          ..$forwarders
-
-          ..$objBody
-        }
-      """
-
-    val res =
-      q"""
-        $macroClass
-
-        $macroObject
-      """
+        """
 
     fixPositions(res)
   }
