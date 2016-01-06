@@ -219,11 +219,19 @@ class BundleMacro[C <: Context](val c: C) {
           $mods trait $macroClassNme[..$tparams] extends ..$parents { $self =>
             ..$macroBody
           }
+
+          object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
+            ..$objBody
+          }
         """
       else if(mods0.hasFlag(ABSTRACT))
         q"""
           $mods class $macroClassNme[..$tparams] extends ..$parents { $self =>
             ..$macroBody
+          }
+
+          object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
+            ..$objBody
           }
         """
       else

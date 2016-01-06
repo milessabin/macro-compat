@@ -74,6 +74,12 @@ abstract class TestMacroBase {
   import c.universe._
 
   def abstractClassAbstractMethod: Tree
+
+  def abstractClassMethodUsingCompanionObject: Tree = q"${TestMacroBase.foo}"
+}
+
+object TestMacroBase {
+  def foo = 1
 }
 
 @bundle
@@ -86,6 +92,12 @@ trait TestUtil {
   }
 
   def traitAbstractMethod: Tree
+
+  def traitMethodUsingCompanionObject: Tree = q"${TestUtil.foo}"
+}
+
+object TestUtil {
+  def foo = 1
 }
 
 @bundle
