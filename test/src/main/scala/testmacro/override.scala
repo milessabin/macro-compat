@@ -36,7 +36,7 @@ trait Super0 {
 }
 
 @bundle
-class Sub0(val c: whitebox.Context) extends Super0 {
+class Sub0(val c: whitebox.Context) extends AnyRef with Super0 {
   import c.universe._
 
   def barImpl(i: Tree): Tree = q""" "bar" """
