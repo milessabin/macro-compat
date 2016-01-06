@@ -76,7 +76,7 @@ abstract class ProxyContext extends Context {
   def parse(code: String) = c.parse(code)
 
   def reifyEnclosingRuntimeClass = c.reifyEnclosingRuntimeClass
-  def reifyRuntimeClass(tpe: Type, concrete: Boolean = false) = c.reifyRuntimeClass(tpe, concrete)
+  def reifyRuntimeClass(tpe: Type, concrete: Boolean = true) = c.reifyRuntimeClass(tpe, concrete)
   def reifyTree(universe: Tree, mirror: Tree, tree: Tree) = c.reifyTree(universe, mirror, tree)
   def reifyType(universe: Tree, mirror: Tree, tpe: Type, concrete: Boolean = false) = c.reifyType(universe, mirror, tpe, concrete)
   def unreifyTree(tree: Tree) = c.unreifyTree(tree)
@@ -87,5 +87,5 @@ abstract class ProxyContext extends Context {
   def openMacros = c.openMacros
   def resetAllAttrs(tree: Tree) = c.resetAllAttrs(tree)
   def resetLocalAttrs(tree: Tree) = c.resetLocalAttrs(tree)
-  def typeCheck(tree: Tree, pt: Type = WildcardType, silent: Boolean = true, withImplicitViewsDisabled: Boolean = false, withMacrosDisabled: Boolean = false) = c.typeCheck(tree, pt, silent, withImplicitViewsDisabled, withMacrosDisabled)
+  def typeCheck(tree: Tree, pt: Type = WildcardType, silent: Boolean = false, withImplicitViewsDisabled: Boolean = false, withMacrosDisabled: Boolean = false) = c.typeCheck(tree, pt, silent, withImplicitViewsDisabled, withMacrosDisabled)
 }
