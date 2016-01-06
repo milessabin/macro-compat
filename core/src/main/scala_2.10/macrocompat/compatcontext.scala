@@ -62,12 +62,6 @@ class CompatContext[C <: Context](val c: C) extends ProxyContext { outer =>
         case xs => Left(s"Failed to identify ImplicitCandidate for $t, ${xs.size} match")
       }
     }
-
-    implicit def tupleToImplicitCandidate(t: (Type, Tree)): ImplicitCandidate =
-      tryUnapply(t) match {
-        case Left(s) => c.abort(c.enclosingPosition, s)
-        case Right((pre, sym, pt, tree)) => ImplicitCandidate(pre, sym, pt, tree)
-      }
   }
 
   type TypecheckMode = Int
@@ -258,6 +252,13 @@ class CompatContext[C <: Context](val c: C) extends ProxyContext { outer =>
 
       def unapply(mods: Modifiers): Option[(FlagSet, Name, List[Tree])] =
         Some((mods.flags, mods.privateWithin, mods.annotations))
+    }
+
+    implicit def tupleToImplicitCandidate(t: (Type, Tree)): ImplicitCandidate = {
+      ImplicitCandidate.tryUnapply(t) match {
+        case Left(s) => c.abort(c.enclosingPosition, s)
+        case Right((pre, sym, pt, tree)) => ImplicitCandidate(pre, sym, pt, tree)
+      }
     }
   }
 }

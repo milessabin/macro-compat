@@ -64,6 +64,8 @@ object Test {
   }
 
   implicit def convertImpl[T](t: T): String = macro TestMacro.convertImpl[T]
+
+  def implicitProperties: (String, String, String, String) = macro TestMacro.implicitProperties
 }
 
 @bundle
@@ -201,4 +203,13 @@ class TestMacro(val c: whitebox.Context) extends TestUtil {
   }
 
   def convertImpl[T](t: Expr[T]): Tree = ???
+
+  def implicitProperties: Tree = {
+    val i = c.openImplicits.head
+    val pre = i.pre.toString
+    val sym = i.sym.toString
+    val pt = i.pt.toString
+    val tree = i.tree.toString
+    q"($pre, $sym, $pt, $tree)"
+  }
 }
