@@ -167,7 +167,7 @@ class BundleMacro[C <: Context](val c: C) {
       case None => (Nil, List(tq"_root_.scala.AnyRef"), Nil)
     }
 
-    val mods = Modifiers(mods0.flags|ABSTRACT)
+    val mods = Modifiers(mods0.flags|ABSTRACT, mods0.privateWithin, mods0.annotations)
 
     val defns = body collect {
       case MacroImpl(d: DefDef) => d
