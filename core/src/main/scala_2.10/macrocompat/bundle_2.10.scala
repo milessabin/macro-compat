@@ -167,7 +167,7 @@ class BundleMacro[C <: Context](val c: C) {
       case None => (Nil, List(tq"_root_.scala.AnyRef"), Nil)
     }
 
-    val mods = Modifiers(mods0.flags|ABSTRACT)
+    val mods = Modifiers(mods0.flags|ABSTRACT, mods0.privateWithin, mods0.annotations)
 
     val defns = body collect {
       case MacroImpl(d: DefDef) => d
@@ -228,19 +228,26 @@ class BundleMacro[C <: Context](val c: C) {
         """
 
     val macroObject =
-      q"""
-        object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
-          class $instClass[C0 <: _root_.scala.reflect.macros.Context](val c: _root_.macrocompat.CompatContext[C0]) extends $macroClassNme {
-            type C = C0
+      if(mods0.hasFlag(ABSTRACT))
+        q"""
+          object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
+            ..$objBody
           }
-          def $instNme[C <: _root_.scala.reflect.macros.Context](c1: _root_.macrocompat.CompatContext[C]): $instClass[C] =
-            new $instClass[C](c1)
+        """
+      else
+        q"""
+          object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
+            class $instClass[C0 <: _root_.scala.reflect.macros.Context](val c: _root_.macrocompat.CompatContext[C0]) extends $macroClassNme {
+              type C = C0
+            }
+            def $instNme[C <: _root_.scala.reflect.macros.Context](c1: _root_.macrocompat.CompatContext[C]): $instClass[C] =
+              new $instClass[C](c1)
 
-          ..$forwarders
+            ..$forwarders
 
-          ..$objBody
-        }
-      """
+            ..$objBody
+          }
+        """
 
     val res =
       q"""

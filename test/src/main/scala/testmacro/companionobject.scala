@@ -38,7 +38,7 @@ trait ClassWithCompanionObjectMixin {
 @macrocompat.bundle
 class ClassWithCompanionObjectWithMixin(val c: whitebox.Context)
 
-object ClassWithCompanionObjectWithMixin extends ClassWithCompanionObjectMixin {
+object ClassWithCompanionObjectWithMixin extends AnyRef with ClassWithCompanionObjectMixin {
   def foo = 1
 }
 

@@ -69,6 +69,20 @@ object Test {
 }
 
 @bundle
+abstract class TestMacroBase {
+  val c: whitebox.Context
+  import c.universe._
+
+  def abstractClassAbstractMethod: Tree
+
+  def abstractClassMethodUsingCompanionObject: Tree = q"${TestMacroBase.foo}"
+}
+
+object TestMacroBase {
+  def foo = 1
+}
+
+@bundle
 trait TestUtil {
   val c: whitebox.Context
   import c.universe._
@@ -76,10 +90,18 @@ trait TestUtil {
   def util(t: Type): Tree = {
     q""" () """
   }
+
+  def traitAbstractMethod: Tree
+
+  def traitMethodUsingCompanionObject: Tree = q"${TestUtil.foo}"
+}
+
+object TestUtil {
+  def foo = 1
 }
 
 @bundle
-class TestMacro(val c: whitebox.Context) extends AnyRef with TestUtil {
+class TestMacro(val c: whitebox.Context) extends TestMacroBase with TestUtil {
   import c.universe._
 
   // Test for early use of context
@@ -212,4 +234,8 @@ class TestMacro(val c: whitebox.Context) extends AnyRef with TestUtil {
     val tree = i.tree.toString
     q"($pre, $sym, $pt, $tree)"
   }
+
+  def traitAbstractMethod: Tree = q"()"
+
+  def abstractClassAbstractMethod: Tree = q"()"
 }
