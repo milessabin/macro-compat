@@ -21,16 +21,55 @@ import scala.language.experimental.macros
 import scala.reflect.macros.{ Context, TypecheckException }
 import scala.reflect.macros.runtime.{ Context => RuntimeContext }
 
-class CompatContext[C <: RuntimeContext](val c: C) extends ProxyContext { outer =>
+class RuntimeCompatContext[C <: Context](val c: C) extends RuntimeContext with Context with CompatContext[C] {
+
+  override lazy val universe: c.universe.type with tools.nsc.Global =
+    c.universe.asInstanceOf[c.universe.type with tools.nsc.Global]
   import universe._
 
-  def freshName() = fresh
-  def freshName(name: String) = fresh(name)
-  def freshName[NameType <: Name](name: NameType) = fresh(name)
+  lazy val rt = c.asInstanceOf[RuntimeContext]
+
+  override lazy val callsiteTyper = rt.callsiteTyper.asInstanceOf[analyzer.Typer]
+  override lazy val prefix: Expr[PrefixType] = rt.prefix.asInstanceOf[Expr[PrefixType]]
+  override lazy val expandee: Tree = rt.expandee.asInstanceOf[Tree]
+}
+
+trait CompatContext[C <: Context] extends Context { outer =>
+
+  val c: C
+  override lazy val universe: c.universe.type = c.universe
+
+  import universe._
+
+  object GlobalConversions {
+
+    val global = c.universe.asInstanceOf[scala.tools.nsc.Global]
+
+    val callsiteTyper = c.asInstanceOf[scala.reflect.macros.runtime.Context].callsiteTyper.asInstanceOf[global.analyzer.Typer]
+    val globalContext = callsiteTyper.context
+
+    implicit def globalType(tpe: Type): global.Type = tpe.asInstanceOf[global.Type]
+    implicit def globalSymbol(sym: Symbol): global.Symbol = sym.asInstanceOf[global.Symbol]
+    implicit def globalTypeSymbol(sym: TypeSymbol): global.TypeSymbol = sym.asInstanceOf[global.TypeSymbol]
+    implicit def globalTree(tree: Tree): global.Tree = tree.asInstanceOf[global.Tree]
+    implicit def globalAnnotation(ann: Annotation): global.Annotation = ann.asInstanceOf[global.Annotation]
+
+    implicit def macroType(tpe: global.Type): Type = tpe.asInstanceOf[Type]
+    implicit def macroSymbol(sym: global.Symbol): Symbol = sym.asInstanceOf[Symbol]
+    implicit def macroTypeSymbol(sym: global.TypeSymbol): TypeSymbol = sym.asInstanceOf[TypeSymbol]
+    implicit def macroTree(tree: global.Tree): Tree = tree.asInstanceOf[Tree]
+    implicit def macroAnnotation(ann: global.Annotation): Annotation = ann.asInstanceOf[Annotation]
+  }
+
+  import GlobalConversions._
+
+  def freshName() = c.fresh
+  def freshName(name: String) = c.fresh(name)
+  def freshName[NameType <: Name](name: NameType) = c.fresh(name)
 
   case class ImplicitCandidate211(pre: Type, sym: Symbol, pt: Type, tree: Tree)
-
   object ImplicitCandidate {
+    def apply(pre: Type, sym: Symbol, pt: Type, tree: Tree) = ImplicitCandidate211(pre, sym, pt, tree)
     def unapply(t: (Type, Tree)): Option[(Type, Symbol, Type, Tree)] = tryUnapply(t).right.toOption
 
     def tryUnapply(t: (Type, Tree)): Either[String, (Type, Symbol, Type, Tree)] = {
@@ -44,10 +83,11 @@ class CompatContext[C <: RuntimeContext](val c: C) extends ProxyContext { outer 
   }
 
   type TypecheckMode = Int
-  val TERMmode = universe.analyzer.EXPRmode
-  val TYPEmode = universe.analyzer.HKmode
+  val TERMmode = global.analyzer.EXPRmode
+  val TYPEmode = global.analyzer.HKmode
 
   def typecheck(tree: Tree, mode: TypecheckMode = TERMmode, pt: Type = WildcardType, silent: Boolean = false, withImplicitViewsDisabled: Boolean = false, withMacrosDisabled: Boolean = false): Tree = {
+    val universe: global.type = global
     type Tree = universe.Tree
     type Type = universe.Type
     val context = callsiteTyper.context
@@ -66,21 +106,21 @@ class CompatContext[C <: RuntimeContext](val c: C) extends ProxyContext { outer 
     }))
   }
 
-  def untypecheck(tree: Tree): Tree = resetLocalAttrs(tree)
+  def untypecheck(tree: Tree): Tree = c.resetLocalAttrs(tree)
 
   object internal {
     def constantType(c: Constant): ConstantType = ConstantType(c)
 
-    def polyType(tparams: List[Symbol], tpe: Type): Type = universe.polyType(tparams, tpe)
+    def polyType(tparams: List[Symbol], tpe: Type): Type = c.universe.polyType(tparams, tpe)
 
     def enclosingOwner: Symbol = callsiteTyper.context.owner
 
     object gen {
       def mkAttributedRef(sym: Symbol): Tree =
-        universe.gen.mkAttributedRef(sym)
+        global.gen.mkAttributedRef(sym)
 
       def mkAttributedRef(pre: Type, sym: Symbol): Tree =
-        universe.gen.mkAttributedRef(pre, sym)
+        global.gen.mkAttributedRef(pre, sym)
     }
 
     object decorators
@@ -89,7 +129,7 @@ class CompatContext[C <: RuntimeContext](val c: C) extends ProxyContext { outer 
 
     def singleType(pre: Type, sym: Symbol): Type = SingleType(pre, sym)
 
-    def typeRef(pre: Type, sym: Symbol, args: List[Type]): Type = universe.typeRef(pre, sym, args)
+    def typeRef(pre: Type, sym: Symbol, args: List[Type]): Type = c.universe.typeRef(pre, sym, args)
 
     def setInfo(sym: Symbol, tpe: Type): Symbol = sym.setTypeSignature(tpe)
 
@@ -146,7 +186,7 @@ class CompatContext[C <: RuntimeContext](val c: C) extends ProxyContext { outer 
 
       def dealias: Type = tpe.normalize
 
-      def finalResultType: Type = tpe.finalResultType
+      def finalResultType: Type = (tpe: global.Type).finalResultType
 
       def paramLists: List[List[Symbol]] = tpe.paramss map (_ map (x => x: Symbol))
     }
@@ -180,11 +220,12 @@ class CompatContext[C <: RuntimeContext](val c: C) extends ProxyContext { outer 
     implicit class AnnotationOps(ann: Annotation) {
       // cut-n-pasted (with the comments) from
       // https://github.com/scala/scala/blob/v2.11.7/src/reflect/scala/reflect/internal/AnnotationInfos.scala#L348-L382
-      private def annotationToTree(ann: Annotation): Tree = {
+      private def annotationToTree(ann: global.Annotation): Tree = {
+        import global.{ Name => GName, Tree => GTree, _ }
         import definitions._
 
-        def reverseEngineerArgs(): List[Tree] = {
-          def reverseEngineerArg(jarg: ClassfileAnnotArg): Tree = jarg match {
+        def reverseEngineerArgs(): List[GTree] = {
+          def reverseEngineerArg(jarg: ClassfileAnnotArg): GTree = jarg match {
             case LiteralAnnotArg(const) =>
               val tpe = if (const.tag == UnitTag) UnitTpe else ConstantType(const)
               Literal(const) setType tpe
@@ -203,7 +244,7 @@ class CompatContext[C <: RuntimeContext](val c: C) extends ProxyContext { outer 
             case _ =>
               EmptyTree
           }
-          def reverseEngineerArgs(jargs: List[(Name, ClassfileAnnotArg)]): List[Tree] = jargs match {
+          def reverseEngineerArgs(jargs: List[(GName, ClassfileAnnotArg)]): List[GTree] = jargs match {
             case (name, jarg) :: rest => AssignOrNamedArg(Ident(name), reverseEngineerArg(jarg)) :: reverseEngineerArgs(rest)
             case Nil => Nil
           }
@@ -225,16 +266,16 @@ class CompatContext[C <: RuntimeContext](val c: C) extends ProxyContext { outer 
 
     object CompatModifiers extends ModifiersCreator {
       def apply(flags: FlagSet, privateWithin: Name = typeNames.EMPTY, annots: List[Tree] = Nil): Modifiers =
-        universe.Modifiers(flags, privateWithin, annots)
+        c.universe.Modifiers(flags, privateWithin, annots)
 
       def unapply(mods: Modifiers): Option[(FlagSet, Name, List[Tree])] =
         Some((mods.flags, mods.privateWithin, mods.annotations))
     }
 
-    implicit def tupleToImplicitCandidate211(t: (Type, Tree)): ImplicitCandidate211 = {
+    implicit def tupleToImplicitCandidate(t: (Type, Tree)): ImplicitCandidate211 = {
       ImplicitCandidate.tryUnapply(t) match {
-        case Left(s) => abort(enclosingPosition, s)
-        case Right((pre, sym, pt, tree)) => ImplicitCandidate211(pre, sym, pt, tree)
+        case Left(s) => c.abort(c.enclosingPosition, s)
+        case Right((pre, sym, pt, tree)) => ImplicitCandidate(pre, sym, pt, tree)
       }
     }
   }
