@@ -20,7 +20,8 @@ lazy val commonSettings = Seq(
     "-feature",
     "-language:higherKinds",
     "-language:implicitConversions",
-    "-unchecked"
+    "-unchecked",
+    "-deprecation"
   ),
   resolvers ++= Seq(
     Resolver.sonatypeRepo("releases"),

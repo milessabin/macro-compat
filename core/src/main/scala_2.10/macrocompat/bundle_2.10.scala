@@ -98,7 +98,11 @@ class BundleMacro[C <: Context](val c: C) {
       }
     })
 
-    val compatCtx = q""" (new _root_.macrocompat.RuntimeCompatContext[$ctxNme.type]($ctxNme): _root_.macrocompat.CompatContext[$ctxNme.type]) """
+    val compatCtx =
+      q"""
+        new _root_.macrocompat.RuntimeCompatContext($ctxNme.asInstanceOf[_root_.scala.reflect.macros.runtime.Context]).
+          asInstanceOf[_root_.macrocompat.CompatContext[$ctxNme.type]]
+      """
 
     val call = q""" $instNme($compatCtx).${name.toTermName}[..$targs](...$cargss) """
     val (ctpt, crhs) =
