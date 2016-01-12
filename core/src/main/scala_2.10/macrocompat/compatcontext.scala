@@ -21,6 +21,134 @@ import scala.language.experimental.macros
 import scala.reflect.macros.{ Context, TypecheckException }
 import scala.reflect.macros.runtime.{ Context => RuntimeContext }
 
+// Interface only. Implementation should be in RuntimeCompatContext
+sealed trait CompatContext[C <: Context] extends Context {
+  val c: C
+  override lazy val universe: c.universe.type = c.universe
+
+  import universe._
+
+  def freshName(): String
+  def freshName(name: String): String
+  def freshName[NameType <: Name](name: NameType): NameType
+
+  case class ImplicitCandidate211(pre: Type, sym: Symbol, pt: Type, tree: Tree)
+  val ImplicitCandidate: ImplicitCandidateCompanion
+  abstract class ImplicitCandidateCompanion {
+    def apply(pre: Type, sym: Symbol, pt: Type, tree: Tree)
+    def unapply(t: (Type, Tree)): Option[(Type, Symbol, Type, Tree)]
+  }
+
+  type TypecheckMode
+  val TERMmode: TypecheckMode
+  val TYPEmode: TypecheckMode
+
+  def typecheck(tree: Tree, mode: TypecheckMode = TERMmode, pt: Type = WildcardType, silent: Boolean = false, withImplicitViewsDisabled: Boolean = false, withMacrosDisabled: Boolean = false): Tree
+
+  def untypecheck(tree: Tree): Tree
+
+  val internal: Internal
+  abstract class Internal {
+    def constantType(c: Constant): ConstantType
+
+    def polyType(tparams: List[Symbol], tpe: Type): Type
+
+    def enclosingOwner: Symbol
+
+    val gen: Gen
+    abstract class Gen {
+      def mkAttributedRef(sym: Symbol): Tree
+
+      def mkAttributedRef(pre: Type, sym: Symbol): Tree
+    }
+
+    object decorators
+
+    def thisType(sym: Symbol): Type
+
+    def singleType(pre: Type, sym: Symbol): Type
+
+    def typeRef(pre: Type, sym: Symbol, args: List[Type]): Type
+
+    def setInfo(sym: Symbol, tpe: Type): Symbol
+
+    def newTermSymbol(owner: Symbol, name: TermName, pos: Position = NoPosition, flags: FlagSet = NoFlags): TermSymbol
+
+    def substituteSymbols(tree: Tree, from: List[Symbol], to: List[Symbol]): Tree
+
+    def typeBounds(lo: Type, hi: Type): TypeBounds
+  }
+
+  val compatUniverse: CompatUniverse
+  abstract class CompatUniverse {
+    val internal: Internal
+
+    val TypeName: TypeNameCompanion
+    abstract class TypeNameCompanion {
+      def apply(s: String): TypeName
+      def unapply(name: TypeName): Option[String]
+    }
+
+    val TermName: TermNameCompanion
+    abstract class TermNameCompanion {
+      def apply(s: String): TermName
+      def unapply(name: TermName): Option[String]
+    }
+
+    def symbolOf[T: WeakTypeTag]: TypeSymbol
+
+    val termNames: TermNamesApi
+    val typeNames: TypeNamesApi
+
+    implicit def TypeOps(tpe: Type): TypeOps
+    abstract class TypeOps {
+      def typeParams: List[Symbol]
+      def typeArgs: List[Type]
+      def companion: Type
+      def decl(nme: Name): Symbol
+      def decls: MemberScope
+      def dealias: Type
+      def finalResultType: Type
+      def paramLists: List[List[Symbol]]
+    }
+
+    implicit def MethodSymbolOps(sym: MethodSymbol): MethodSymbolOps
+    abstract class MethodSymbolOps {
+      def paramLists: List[List[Symbol]]
+    }
+
+    implicit def SymbolOps(sym: Symbol): SymbolOps
+    abstract class SymbolOps {
+      def companion: Symbol
+      def info: Type
+      def infoIn(site: Type): Type
+      def isConstructor: Boolean
+      def isAbstract: Boolean
+      def overrides: List[Symbol]
+    }
+
+    implicit def TreeOps(tree: Tree): TreeOps
+    abstract class TreeOps {
+      def nonEmpty: Boolean
+    }
+
+    implicit def AnnotationOps(ann: Annotation): AnnotationOps
+    abstract class AnnotationOps {
+      def tree: Tree
+    }
+
+    def showCode(t: Tree): String
+
+    val CompatModifiers: CompatModifiers
+    abstract class CompatModifiers extends ModifiersCreator {
+      def apply(flags: FlagSet, privateWithin: Name = typeNames.EMPTY, annots: List[Tree] = Nil): Modifiers
+      def unapply(mods: Modifiers): Option[(FlagSet, Name, List[Tree])]
+    }
+
+    implicit def tupleToImplicitCandidate(t: (Type, Tree)): ImplicitCandidate211
+  }
+}
+
 class RuntimeCompatContext[C <: RuntimeContext](val c: C) extends RuntimeContext with CompatContext[C] { outer =>
   override lazy val universe: c.universe.type = c.universe
 
@@ -241,132 +369,5 @@ class RuntimeCompatContext[C <: RuntimeContext](val c: C) extends RuntimeContext
         case Right((pre, sym, pt, tree)) => ImplicitCandidate211(pre, sym, pt, tree)
       }
     }
-  }
-}
-
-trait CompatContext[C <: Context] extends Context {
-  val c: C
-  override lazy val universe: c.universe.type = c.universe
-
-  import universe._
-
-  def freshName(): String
-  def freshName(name: String): String
-  def freshName[NameType <: Name](name: NameType): NameType
-
-  case class ImplicitCandidate211(pre: Type, sym: Symbol, pt: Type, tree: Tree)
-  val ImplicitCandidate: ImplicitCandidateCompanion
-  abstract class ImplicitCandidateCompanion {
-    def apply(pre: Type, sym: Symbol, pt: Type, tree: Tree)
-    def unapply(t: (Type, Tree)): Option[(Type, Symbol, Type, Tree)]
-  }
-
-  type TypecheckMode
-  val TERMmode: TypecheckMode
-  val TYPEmode: TypecheckMode
-
-  def typecheck(tree: Tree, mode: TypecheckMode = TERMmode, pt: Type = WildcardType, silent: Boolean = false, withImplicitViewsDisabled: Boolean = false, withMacrosDisabled: Boolean = false): Tree
-
-  def untypecheck(tree: Tree): Tree
-
-  val internal: Internal
-  abstract class Internal {
-    def constantType(c: Constant): ConstantType
-
-    def polyType(tparams: List[Symbol], tpe: Type): Type
-
-    def enclosingOwner: Symbol
-
-    val gen: Gen
-    abstract class Gen {
-      def mkAttributedRef(sym: Symbol): Tree
-
-      def mkAttributedRef(pre: Type, sym: Symbol): Tree
-    }
-
-    object decorators
-
-    def thisType(sym: Symbol): Type
-
-    def singleType(pre: Type, sym: Symbol): Type
-
-    def typeRef(pre: Type, sym: Symbol, args: List[Type]): Type
-
-    def setInfo(sym: Symbol, tpe: Type): Symbol
-
-    def newTermSymbol(owner: Symbol, name: TermName, pos: Position = NoPosition, flags: FlagSet = NoFlags): TermSymbol
-
-    def substituteSymbols(tree: Tree, from: List[Symbol], to: List[Symbol]): Tree
-
-    def typeBounds(lo: Type, hi: Type): TypeBounds
-  }
-
-  val compatUniverse: CompatUniverse
-  abstract class CompatUniverse {
-    val internal: Internal
-
-    val TypeName: TypeNameCompanion
-    abstract class TypeNameCompanion {
-      def apply(s: String): TypeName
-      def unapply(name: TypeName): Option[String]
-    }
-
-    val TermName: TermNameCompanion
-    abstract class TermNameCompanion {
-      def apply(s: String): TermName
-      def unapply(name: TermName): Option[String]
-    }
-
-    def symbolOf[T: WeakTypeTag]: TypeSymbol
-
-    val termNames: TermNamesApi
-    val typeNames: TypeNamesApi
-
-    implicit def TypeOps(tpe: Type): TypeOps
-    abstract class TypeOps {
-      def typeParams: List[Symbol]
-      def typeArgs: List[Type]
-      def companion: Type
-      def decl(nme: Name): Symbol
-      def decls: MemberScope
-      def dealias: Type
-      def finalResultType: Type
-      def paramLists: List[List[Symbol]]
-    }
-
-    implicit def MethodSymbolOps(sym: MethodSymbol): MethodSymbolOps
-    abstract class MethodSymbolOps {
-      def paramLists: List[List[Symbol]]
-    }
-
-    implicit def SymbolOps(sym: Symbol): SymbolOps
-    abstract class SymbolOps {
-      def companion: Symbol
-      def info: Type
-      def infoIn(site: Type): Type
-      def isConstructor: Boolean
-      def isAbstract: Boolean
-      def overrides: List[Symbol]
-    }
-
-    implicit def TreeOps(tree: Tree): TreeOps
-    abstract class TreeOps {
-      def nonEmpty: Boolean
-    }
-
-    implicit def AnnotationOps(ann: Annotation): AnnotationOps
-    abstract class AnnotationOps {
-      def tree: Tree
-    }
-
-    def showCode(t: Tree): String
-
-    val CompatModifiers: CompatModifiers
-    abstract class CompatModifiers extends ModifiersCreator {
-      def apply(flags: FlagSet, privateWithin: Name = typeNames.EMPTY, annots: List[Tree] = Nil): Modifiers
-      def unapply(mods: Modifiers): Option[(FlagSet, Name, List[Tree])]
-    }
-
-    implicit def tupleToImplicitCandidate(t: (Type, Tree)): ImplicitCandidate211
   }
 }
