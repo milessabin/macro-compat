@@ -256,9 +256,14 @@ class RuntimeCompatContext[C <: RuntimeContext](val c: C) extends RuntimeContext
           case _ => tpe.typeSymbol.asType.typeParams
         }
 
-        def typeArgs: List[Type] = tpe match {
-          case TypeRef(_, _, args) => args
-          case _ => Nil
+        def typeArgs: List[Type] = {
+          @tailrec
+          def loop(tpe: Type): List[Type] = tpe match {
+            case TypeRef(_, _, args) => args
+            case ExistentialType(_, underlying) => loop(underlying)
+            case _ => Nil
+          }
+          loop(tpe)
         }
 
         def companion: Type = {
@@ -273,7 +278,15 @@ class RuntimeCompatContext[C <: RuntimeContext](val c: C) extends RuntimeContext
 
         def decls = tpe.declarations
 
-        def dealias: Type = tpe.normalize
+        def dealias: Type = {
+          @tailrec
+          def loop(tpe: Type): Type = tpe match {
+            case tr @ TypeRef(pre, sym, args) if sym.isAliasType =>
+              if(tr.typeParamsMatchArgs) loop(tr.betaReduce) else tpe
+            case _ => tpe
+          }
+          loop(tpe)
+        }
 
         def finalResultType: Type = {
           @tailrec
