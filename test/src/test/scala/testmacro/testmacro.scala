@@ -133,6 +133,10 @@ class MacroCompatTests extends FunSuite {
     val res = implicitly[List[String]]
     assert(res == List("materialize"))
   }
+
+  test("finalResultType") {
+    Test.finalResultType
+  }
 }
 
 class Foo

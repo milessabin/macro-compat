@@ -51,6 +51,8 @@ object Test {
 
   def freshName: String = macro TestMacro.freshNameImpl
 
+  def finalResultType: Unit = macro TestMacro.finalResultType
+
   implicit def materialize: List[String] = macro TestMacro.materialize
 
   trait AnnotationType[T] {
@@ -238,4 +240,23 @@ class TestMacro(val c: whitebox.Context) extends TestMacroBase with TestUtil {
   def traitAbstractMethod: Tree = q"()"
 
   def abstractClassAbstractMethod: Tree = q"()"
+
+  def finalResultType: Tree = {
+    trait Foo {
+      def foo: Unit
+      def bar(): Unit
+      def baz(i: Int): Unit
+      def quux(i: Int)(s: String): Unit
+    }
+
+    def check(nme: String, tpe: Type): Unit =
+      assert(weakTypeOf[Foo].decl(TermName(nme)).typeSignature.finalResultType =:= tpe)
+
+    check("foo", typeOf[Unit])
+    check("bar", typeOf[Unit])
+    check("baz", typeOf[Unit])
+    check("quux", typeOf[Unit])
+
+    q"()"
+  }
 }

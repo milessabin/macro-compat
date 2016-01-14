@@ -18,6 +18,7 @@ package macrocompat
 
 import scala.language.experimental.macros
 
+import scala.annotation.tailrec
 import scala.reflect.macros.{ Context, TypecheckException }
 import scala.reflect.macros.runtime.{ Context => RuntimeContext }
 
@@ -274,7 +275,16 @@ class RuntimeCompatContext[C <: RuntimeContext](val c: C) extends RuntimeContext
 
         def dealias: Type = tpe.normalize
 
-        def finalResultType: Type = (tpe: global.Type).finalResultType
+        def finalResultType: Type = {
+          @tailrec
+          def loop(tp: Type): Type = tp match {
+            case PolyType(_, restpe)       => loop(restpe)
+            case MethodType(_, restpe)     => loop(restpe)
+            case NullaryMethodType(restpe) => loop(restpe)
+            case _                         => tp
+          }
+          loop(tpe)
+        }
 
         def paramLists: List[List[Symbol]] = tpe.paramss map (_ map (x => x: Symbol))
       }
