@@ -267,7 +267,6 @@ class TestMacro(val c: whitebox.Context) extends TestMacroBase with TestUtil {
     val dealiased = tpe.dealias
     val tArgs = dealiased.typeArgs
     val normalized = appliedType(dealiased.typeConstructor, tArgs)
-    assert(dealiased =:= normalized)
     q"()"
   }
 }
