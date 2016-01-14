@@ -137,6 +137,10 @@ class MacroCompatTests extends FunSuite {
   test("finalResultType") {
     Test.finalResultType
   }
+
+  test("dealiasTypeArgs") {
+    Test.dealiasTypeArgs
+  }
 }
 
 class Foo

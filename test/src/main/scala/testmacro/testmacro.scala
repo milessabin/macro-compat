@@ -53,6 +53,8 @@ object Test {
 
   def finalResultType: Unit = macro TestMacro.finalResultType
 
+  def dealiasTypeArgs: Unit = macro TestMacro.dealiasTypeArgs
+
   implicit def materialize: List[String] = macro TestMacro.materialize
 
   trait AnnotationType[T] {
@@ -257,6 +259,15 @@ class TestMacro(val c: whitebox.Context) extends TestMacroBase with TestUtil {
     check("baz", typeOf[Unit])
     check("quux", typeOf[Unit])
 
+    q"()"
+  }
+
+  def dealiasTypeArgs: Tree = {
+    val tpe = weakTypeOf[Either[Int, _]]
+    val dealiased = tpe.dealias
+    val tArgs = dealiased.typeArgs
+    val normalized = appliedType(dealiased.typeConstructor, tArgs)
+    assert(dealiased =:= normalized)
     q"()"
   }
 }

@@ -257,10 +257,11 @@ class RuntimeCompatContext[C <: RuntimeContext](val c: C) extends RuntimeContext
         }
 
         def typeArgs: List[Type] = {
-          @tailrec
+          import scala.language.reflectiveCalls
           def loop(tpe: Type): List[Type] = tpe match {
             case TypeRef(_, _, args) => args
-            case ExistentialType(_, underlying) => loop(underlying)
+            case et @ ExistentialType(_, underlying) =>
+              loop(underlying).map(arg => et.asInstanceOf[{ def maybeRewrap(tpe: Type): Type }].maybeRewrap(arg))
             case _ => Nil
           }
           loop(tpe)
