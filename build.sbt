@@ -107,8 +107,11 @@ lazy val scalaMacroDependencies: Seq[Setting[_]] = Seq(
 lazy val crossVersionSharedSources: Seq[Setting[_]] =
   Seq(Compile, Test).map { sc =>
     (unmanagedSourceDirectories in sc) ++= {
-      (unmanagedSourceDirectories in sc ).value.map {
-        dir:File => new File(dir.getPath + "_" + scalaBinaryVersion.value)
+      (unmanagedSourceDirectories in sc).value.map { dir =>
+        scalaPartV.value match {
+          case Some((2, y)) if y == 10 => new File(dir.getPath + "_2.10")
+          case Some((2, y)) if y >= 11 => new File(dir.getPath + "_2.11+")
+        }
       }
     }
   }
@@ -152,6 +155,8 @@ lazy val mimaSettings = mimaDefaultSettings ++ Seq(
     )
   }
 )
+
+def scalaPartV = Def setting (CrossVersion partialVersion scalaVersion.value)
 
 lazy val noPublishSettings = Seq(
   publish := (),
