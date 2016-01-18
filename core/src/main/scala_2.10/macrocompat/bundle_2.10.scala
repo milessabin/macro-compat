@@ -205,6 +205,7 @@ class BundleMacro[C <: Context](val c: C) {
         val c: _root_.macrocompat.CompatContext[C]
 
         import c.compatUniverse._
+        import _root_.macrocompat.TypecheckerContextExtensions._
 
         private def appliedType(tc: c.universe.Type, ts: _root_.scala.collection.immutable.List[c.universe.Type]): c.universe.Type = c.universe.appliedType(tc, ts)
 
