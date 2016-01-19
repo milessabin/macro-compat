@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Miles Sabin
+ * Copyright (c) 2016 Miles Sabin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,31 @@
  * limitations under the License.
  */
 
-package scala.reflect.macros
+package delegate
 
-object blackbox {
-  type Context = macrocompat.CompatContext
+import scala.language.experimental.macros
+
+import scala.reflect.macros.whitebox
+
+import macrocompat.bundle
+
+class Delegate {
+  def delegate: Unit = macro DelegateMacro.delegate
 }
 
-object whitebox {
-  type Context = macrocompat.CompatContext
+@bundle
+class DelegateMacro(val c: whitebox.Context) { outer =>
+  import c.universe._
+
+  class D(override val c: outer.c.type) extends Delegatee(c)
+  def delegate: Tree = (new D(c)).delegate
 }
 
+@bundle
+class Delegatee(val c: whitebox.Context) {
+  import c.universe._
+
+  def delegate: Tree = {
+    q"()"
+  }
+}

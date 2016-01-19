@@ -23,8 +23,8 @@ import scala.reflect.macros.{ Context, TypecheckException }
 import scala.reflect.macros.runtime.{ Context => RuntimeContext }
 
 // Interface only. Implementation should be in RuntimeCompatContext
-sealed trait CompatContext[C <: Context] extends Context {
-  val c: C
+sealed trait CompatContext extends Context {
+  val c: Context
   override lazy val universe: c.universe.type = c.universe
 
   import universe._
@@ -150,7 +150,7 @@ sealed trait CompatContext[C <: Context] extends Context {
   }
 }
 
-class RuntimeCompatContext[C <: RuntimeContext](val c: C) extends RuntimeContext with CompatContext[C] { outer =>
+class RuntimeCompatContext(val c: RuntimeContext) extends RuntimeContext with CompatContext { outer =>
   override lazy val universe: c.universe.type = c.universe
 
   import universe._

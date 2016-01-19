@@ -69,7 +69,7 @@ class BundleMacro[C <: Context](val c: C) {
     }
   }
 
-  def mkForwarder(d: DefDef, typeNme: TypeName, instNme: TermName): DefDef = {
+  def mkForwarder(d: DefDef, macroClassNme: TypeName): DefDef = {
     val DefDef(mods, name, tparams, vparamss, tpt, rhs) = d
     val ctxNme = newTermName(c.fresh)
     val ctxParam = q""" val $ctxNme: _root_.scala.reflect.macros.Context """
@@ -87,34 +87,39 @@ class BundleMacro[C <: Context](val c: C) {
       }
       ValDef(mods, nme, ctpt, rhs)
     })
+    val mi = newTermName(c.fresh("inst"))
     val cargss = vparamss.map(_.map { param =>
       val ValDef(mods, nme, tpt, rhs) = param
       tpt match {
-        case TreeE(_) => q""" $nme.tree """
-        case ExprE(_) => q""" $nme """
-        case Repeat(TreeE(_)) => q""" $nme.map(_.tree): _* """
-        case Repeat(ExprE(_)) => q""" $nme: _* """
-        case WeakTypeTagE(_) => q""" $nme """
+        case TreeE(_) => q""" $nme.tree.asInstanceOf[$mi.c.universe.Tree] """
+        case ExprE(t) => q""" $nme.asInstanceOf[$mi.c.Expr[$t]] """
+        case Repeat(TreeE(_)) => q""" $nme.map(_.tree.asInstanceOf[$mi.c.universe.Tree]): _* """
+        case Repeat(ExprE(t)) => q""" $nme.map(_.asInstanceOf[$mi.c.Expr[$t]]): _* """
+        case WeakTypeTagE(t) => q""" $nme.asInstanceOf[$mi.c.universe.WeakTypeTag[$t]] """
       }
     })
 
-    val compatCtx =
+    val call =
       q"""
-        new _root_.macrocompat.RuntimeCompatContext($ctxNme.asInstanceOf[_root_.scala.reflect.macros.runtime.Context]).
-          asInstanceOf[_root_.macrocompat.CompatContext[$ctxNme.type]]
+        val $mi =
+          new $macroClassNme(
+            new _root_.macrocompat.RuntimeCompatContext(
+              $ctxNme.asInstanceOf[_root_.scala.reflect.macros.runtime.Context]
+            )
+          )
+        $mi.${name.toTermName}[..$targs](...$cargss)
       """
 
-    val call = q""" $instNme($compatCtx).${name.toTermName}[..$targs](...$cargss) """
     val (ctpt, crhs) =
       tpt match {
         case ExprE(tpt) => (
           tq""" $ctxNme.Expr[$tpt] """,
-           q""" $ctxNme.Expr[$tpt](_root_.macrocompat.BundleMacro.fixPositions[$ctxNme.type]($ctxNme)($call.tree)) """
+           q""" $ctxNme.Expr[$tpt](_root_.macrocompat.BundleMacro.fixPositions[$ctxNme.type]($ctxNme)($call.tree.asInstanceOf[$ctxNme.universe.Tree])) """
         )
         case TreeE(tpt) => (
           tq""" $ctxNme.Expr[Nothing] """,
-           q""" $ctxNme.Expr[Nothing](_root_.macrocompat.BundleMacro.fixPositions[$ctxNme.type]($ctxNme)($call)) """
-         )
+           q""" $ctxNme.Expr[Nothing](_root_.macrocompat.BundleMacro.fixPositions[$ctxNme.type]($ctxNme)($call.asInstanceOf[$ctxNme.universe.Tree])) """
+        )
       }
 
     DefDef(mods, name, tparams, List(ctxParam) :: cvparamss, ctpt, crhs)
@@ -164,46 +169,14 @@ class BundleMacro[C <: Context](val c: C) {
   }
 
   def mkMacroClsAndObjTree(clsDef: ClassDef, objDef: Option[ModuleDef]) = {
-    val ClassDef(mods0, macroClassNme, tparams, Template(parents, self, body)) = clsDef
-
-    val (objEarlydefns, objParents, objBody) = objDef match {
-      case Some(q"$objMods object $objTname extends { ..$objEarlydefns } with ..$objParents { $objSelf => ..$objBody }") => (objEarlydefns, objParents, objBody)
-      case None => (Nil, List(tq"_root_.scala.AnyRef"), Nil)
-    }
-
-    val mods = Modifiers(mods0.flags|ABSTRACT, mods0.privateWithin, mods0.annotations)
-
-    val defns = body collect {
-      case MacroImpl(d: DefDef) => d
-    }
-
-    // For now all macro bundles must have a Context constructor argument named "c". See,
-    //   https://gitter.im/scala/scala?at=55ef0ffe24362d5253fe3a51
-    val origCtxNme = newTermName("c")
-    val mixinCtor = newTermName("$init$")
-
-    val PARAMACCESSOR = (1L << 29).asInstanceOf[FlagSet]
-    val macroDefns = body filter {
-      case d: DefDef if d.name == nme.CONSTRUCTOR || d.name == mixinCtor => false
-      case ValDef(mods, _, _, _) if mods.hasFlag(PARAMACCESSOR) => false
-      case ValDef(_, nme, _, _) if nme == origCtxNme => false
-      case _ => true
-    }
-
-    val instClass = newTypeName(c.fresh)
-    val instNme = newTermName(c.fresh)
-    val forwarders = defns.map { d => mkForwarder(d, macroClassNme, instNme) }
-    val macroObjectNme = macroClassNme.toTermName
+    val ClassDef(mods, macroClassNme, tparams, Template(parents, self, body)) = clsDef
 
     // The private forwarding defintions (appliedType, Modifiers) below are needed because they need
     // to appear to be accessible as a result of import c.universe._. They can't be added to
     // c.compatUniverse because that results in import ambiguities. Note that the definitions are
     // private to avoid override conflicts in stacks of inherited bundles.
-    val macroBody =
+    val Block(stats, _) =
       q"""
-        type C <: _root_.scala.reflect.macros.Context
-        val c: _root_.macrocompat.CompatContext[C]
-
         import c.compatUniverse._
         import _root_.macrocompat.TypecheckerContextExtensions._
 
@@ -212,54 +185,68 @@ class BundleMacro[C <: Context](val c: C) {
         private def appliedType(tc: c.universe.Type, ts: c.universe.Type*): c.universe.Type = c.universe.appliedType(tc, ts.toList)
 
         private val Modifiers = c.compatUniverse.CompatModifiers
-
-        ..$macroDefns
       """
 
-    // There should be a better way of doing this, but it doesn't seem to be possible
-    // to abstract over class vs. trait in a quasiquote.
-    val macroClass =
-      if(mods.hasFlag(TRAIT))
-        q"""
-          $mods trait $macroClassNme[..$tparams] extends ..$parents { $self =>
-            ..$macroBody
-          }
-        """
-      else
-        q"""
-          $mods class $macroClassNme[..$tparams] extends ..$parents { $self =>
-            ..$macroBody
-          }
-        """
+    // For now all macro bundles must have a Context constructor argument named "c". See,
+    //   https://gitter.im/scala/scala?at=55ef0ffe24362d5253fe3a51
+    val ctxNme = newTermName("c")
+    val mixinCtorNme = newTermName("$init$")
 
-    val macroObject =
-      if(mods0.hasFlag(ABSTRACT))
-        q"""
-          object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
-            ..$objBody
-          }
-        """
-      else
-        q"""
-          object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
-            class $instClass[C0 <: _root_.scala.reflect.macros.Context](val c: _root_.macrocompat.CompatContext[C0]) extends $macroClassNme {
-              type C = C0
-            }
-            def $instNme[C <: _root_.scala.reflect.macros.Context](c1: _root_.macrocompat.CompatContext[C]): $instClass[C] =
-              new $instClass[C](c1)
+    val (prefix0, ctor :: suffix0) = body.span {
+      case d: DefDef if d.name == nme.CONSTRUCTOR || d.name == mixinCtorNme => false
+      case _ => true
+    }
 
+    val (prefix1, suffix1) = suffix0.span {
+      case ValDef(_, nme, _, _) if nme == ctxNme => false
+      case _ => true
+    }
+
+    val suffix2 =
+      suffix1 match {
+        case decl :: rest => prefix1 ++ (decl :: stats) ++ rest
+        case _ => stats ++ prefix1 ++ suffix1
+      }
+
+    val newBody = prefix0 ++ List(ctor) ++ suffix2
+
+    val macroClass = ClassDef(mods, macroClassNme, tparams, Template(parents, self, newBody))
+
+    val res =
+      if(mods.hasFlag(ABSTRACT))
+        objDef match {
+          case Some(obj) =>
+            q"""
+              $macroClass
+
+              $obj
+            """
+          case _ =>
+            macroClass
+        }
+      else {
+        val (objEarlydefns, objParents, objBody) = objDef match {
+          case Some(q"$objMods object $objTname extends { ..$objEarlydefns } with ..$objParents { $objSelf => ..$objBody }") => (objEarlydefns, objParents, objBody)
+          case None => (Nil, List(tq"_root_.scala.AnyRef"), Nil)
+        }
+
+        val defns = body collect {
+          case MacroImpl(d: DefDef) => d
+        }
+
+        val forwarders = defns.map { d => mkForwarder(d, macroClassNme) }
+        val macroObjectNme = macroClassNme.toTermName
+
+        q"""
+          $macroClass
+
+          object $macroObjectNme extends { ..$objEarlydefns } with ..$objParents {
             ..$forwarders
 
             ..$objBody
           }
         """
-
-    val res =
-      q"""
-        $macroClass
-
-        $macroObject
-      """
+      }
 
     fixPositions(res)
   }
