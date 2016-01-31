@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Miles Sabin
+ * Copyright (c) 2015-6 Miles Sabin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -183,6 +183,8 @@ class BundleMacro[C <: Context](val c: C) {
         private def appliedType(tc: c.universe.Type, ts: _root_.scala.collection.immutable.List[c.universe.Type]): c.universe.Type = c.universe.appliedType(tc, ts)
 
         private def appliedType(tc: c.universe.Type, ts: c.universe.Type*): c.universe.Type = c.universe.appliedType(tc, ts.toList)
+
+        private val Annotation = c.compatUniverse.CompatAnnotation
 
         private val Modifiers = c.compatUniverse.CompatModifiers
       """

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Miles Sabin
+ * Copyright (c) 2015-6 Miles Sabin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -206,6 +206,10 @@ class TestMacro(val c: whitebox.Context) extends TestMacroBase with TestUtil {
       // Ensuring we can call this one
       ann.tree.children.tail
     }
+
+    // Test 2.11.x apply
+    val tree = annotations.head.tree
+    val ann2 = Annotation(tree)
 
     annotations match {
       case Nil => c.abort(c.enclosingPosition, s"No annotation found on $tpe")

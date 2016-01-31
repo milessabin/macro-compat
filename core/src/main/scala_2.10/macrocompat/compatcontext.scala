@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Miles Sabin
+ * Copyright (c) 2015-6 Miles Sabin
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 
 package macrocompat
 
+import scala.language.postfixOps
 import scala.language.experimental.macros
 
 import scala.annotation.tailrec
+import scala.collection.immutable.ListMap
 import scala.reflect.macros.{ Context, TypecheckException }
 import scala.reflect.macros.runtime.{ Context => RuntimeContext }
 
@@ -133,6 +135,14 @@ sealed trait CompatContext extends Context {
       def nonEmpty: Boolean
     }
 
+    val CompatAnnotation: AnnotationCompanion
+    abstract class AnnotationCompanion {
+      def apply(tree: Tree): Annotation
+
+      def apply(tpe: Type, scalaArgs: List[Tree], javaArgs: ListMap[Name, JavaArgument]): Annotation
+      def unapply(ann: Annotation): Option[(Type, List[Tree], ListMap[Name, JavaArgument])]
+    }
+
     implicit def AnnotationOps(ann: Annotation): AnnotationOps
     abstract class AnnotationOps {
       def tree: Tree
@@ -162,6 +172,7 @@ class RuntimeCompatContext(val c: RuntimeContext) extends RuntimeContext with Co
   def freshName() = c.fresh
   def freshName(name: String) = c.fresh(name)
   def freshName[NameType <: Name](name: NameType) = c.fresh(name)
+
 
   object ImplicitCandidate extends ImplicitCandidateCompanion {
     def apply(pre: Type, sym: Symbol, pt: Type, tree: Tree) = ImplicitCandidate211(pre, sym, pt, tree)
@@ -332,49 +343,82 @@ class RuntimeCompatContext(val c: RuntimeContext) extends RuntimeContext with Co
         def nonEmpty = !tree.isEmpty
       }
 
-    implicit def AnnotationOps(ann: Annotation): AnnotationOps =
-      new AnnotationOps {
-        // cut-n-pasted (with the comments) from
-        // https://github.com/scala/scala/blob/v2.11.7/src/reflect/scala/reflect/internal/AnnotationInfos.scala#L348-L382
-        private def annotationToTree(ann: Annotation): Tree = {
-          import definitions._
+    object CompatAnnotation extends AnnotationCompanion {
+      import definitions._
 
-          def reverseEngineerArgs(): List[Tree] = {
-            def reverseEngineerArg(jarg: ClassfileAnnotArg): Tree = jarg match {
-              case LiteralAnnotArg(const) =>
-                val tpe = if (const.tag == UnitTag) UnitTpe else ConstantType(const)
-                Literal(const) setType tpe
-              case ArrayAnnotArg(jargs) =>
-                val args = jargs map reverseEngineerArg
-                // TODO: I think it would be a good idea to typecheck Java annotations using a more traditional algorithm
-                // sure, we can't typecheck them as is using the `new jann(foo = bar)` syntax (because jann is going to be an @interface)
-                // however we can do better than `typedAnnotation` by desugaring the aforementioned expression to
-                // something like `new jann() { override def annotatedType() = ...; override def foo = bar }`
-                // and then using the results of that typecheck to produce a Java-compatible classfile entry
-                // in that case we're going to have correctly typed Array.apply calls, however that's 2.12 territory
-                // and for 2.11 exposing an untyped call to ArrayModule should suffice
-                Apply(Ident(ArrayModule), args.toList)
-              case NestedAnnotArg(ann: Annotation) =>
-                annotationToTree(ann)
-              case _ =>
-                EmptyTree
-            }
-            def reverseEngineerArgs(jargs: List[(Name, ClassfileAnnotArg)]): List[Tree] = jargs match {
-              case (name, jarg) :: rest => AssignOrNamedArg(Ident(name), reverseEngineerArg(jarg)) :: reverseEngineerArgs(rest)
-              case Nil => Nil
-            }
-            if (ann.javaArgs.isEmpty) ann.scalaArgs
-            else reverseEngineerArgs(ann.javaArgs.toList)
+      def apply(tree: Tree): Annotation = treeToAnnotation(tree)
+
+      def apply(tpe: Type, scalaArgs: List[Tree], javaArgs: ListMap[Name, JavaArgument]): Annotation =
+        universe.Annotation(tpe, scalaArgs, javaArgs)
+
+      def unapply(ann: Annotation): Option[(Type, List[Tree], ListMap[Name, JavaArgument])] =
+        universe.Annotation.unapply(ann)
+
+      // cut-n-pasted (with the comments) from
+      // https://github.com/scala/scala/blob/v2.11.7/src/reflect/scala/reflect/internal/AnnotationInfos.scala#L348-L382
+      def annotationToTree(ann: Annotation): Tree = {
+        def reverseEngineerArgs(): List[Tree] = {
+          def reverseEngineerArg(jarg: ClassfileAnnotArg): Tree = jarg match {
+            case LiteralAnnotArg(const) =>
+              val tpe = if (const.tag == UnitTag) UnitTpe else ConstantType(const)
+              Literal(const) setType tpe
+            case ArrayAnnotArg(jargs) =>
+              val args = jargs map reverseEngineerArg
+              // TODO: I think it would be a good idea to typecheck Java annotations using a more traditional algorithm
+              // sure, we can't typecheck them as is using the `new jann(foo = bar)` syntax (because jann is going to be an @interface)
+              // however we can do better than `typedAnnotation` by desugaring the aforementioned expression to
+              // something like `new jann() { override def annotatedType() = ...; override def foo = bar }`
+              // and then using the results of that typecheck to produce a Java-compatible classfile entry
+              // in that case we're going to have correctly typed Array.apply calls, however that's 2.12 territory
+              // and for 2.11 exposing an untyped call to ArrayModule should suffice
+              Apply(Ident(ArrayModule), args.toList)
+            case NestedAnnotArg(ann: Annotation) =>
+              annotationToTree(ann)
+            case _ =>
+              EmptyTree
           }
-
-          // TODO: at the moment, constructor selection is unattributed, because AnnotationInfos lack necessary information
-          // later on, in 2.12, for every annotation we could save an entire tree instead of just bits and pieces
-          // but for 2.11 the current situation will have to do
-          val ctorSelection = Select(New(TypeTree(ann.atp)), nme.CONSTRUCTOR)
-          Apply(ctorSelection, reverseEngineerArgs()) setType ann.atp
+          def reverseEngineerArgs(jargs: List[(Name, ClassfileAnnotArg)]): List[Tree] = jargs match {
+            case (name, jarg) :: rest => AssignOrNamedArg(Ident(name), reverseEngineerArg(jarg)) :: reverseEngineerArgs(rest)
+            case Nil => Nil
+          }
+          if (ann.javaArgs.isEmpty) ann.scalaArgs
+          else reverseEngineerArgs(ann.javaArgs.toList)
         }
 
-        def tree: Tree = annotationToTree(ann)
+        // TODO: at the moment, constructor selection is unattributed, because AnnotationInfos lack necessary information
+        // later on, in 2.12, for every annotation we could save an entire tree instead of just bits and pieces
+        // but for 2.11 the current situation will have to do
+        val ctorSelection = Select(New(TypeTree(ann.atp)), nme.CONSTRUCTOR)
+        Apply(ctorSelection, reverseEngineerArgs()) setType ann.atp
+      }
+
+      // cut-n-pasted (with the comments) from
+      // https://github.com/scala/scala/blob/v2.11.7/src/reflect/scala/reflect/internal/AnnotationInfos.scala#L384-L403
+      def treeToAnnotation(tree: Tree): Annotation = tree match {
+        case Apply(Select(New(tpt), nme.CONSTRUCTOR), args) =>
+          def encodeJavaArg(arg: Tree): ClassfileAnnotArg = arg match {
+            case Literal(const) => LiteralAnnotArg(const)
+            case Apply(ArrayModule, args) => ArrayAnnotArg(args map encodeJavaArg toArray)
+            case Apply(Select(New(tpt), nme.CONSTRUCTOR), args) => NestedAnnotArg(treeToAnnotation(arg))
+            case _ => throw new Exception(s"unexpected java argument shape $arg: literals, arrays and nested annotations are supported")
+          }
+          def encodeJavaArgs(args: List[Tree]): List[(Name, ClassfileAnnotArg)] = args match {
+            case AssignOrNamedArg(Ident(name), arg) :: rest => (name, encodeJavaArg(arg)) :: encodeJavaArgs(rest)
+            case arg :: rest => throw new Exception(s"unexpected java argument shape $arg: only AssignOrNamedArg trees are supported")
+            case Nil => Nil
+          }
+          val atp = tpt.tpe
+          if (atp != null && (atp.typeSymbol isNonBottomSubClass StaticAnnotationClass)) AnnotationInfo(atp, args, Nil)
+          else if (atp != null && (atp.typeSymbol isNonBottomSubClass ClassfileAnnotationClass)) AnnotationInfo(atp, Nil, encodeJavaArgs(args))
+          else throw new Exception(s"unexpected annotation type $atp: only subclasses of StaticAnnotation and ClassfileAnnotation are supported")
+        case _ =>
+          throw new Exception("""unexpected tree shape: only q"new $annType(..$args)" is supported""")
+      }
+    }
+
+    implicit def AnnotationOps(ann: Annotation): AnnotationOps =
+      new AnnotationOps {
+        def tree: Tree = CompatAnnotation.annotationToTree(ann)
       }
 
     def showCode(t: Tree): String = show(t)
