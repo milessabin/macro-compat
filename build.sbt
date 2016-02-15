@@ -4,7 +4,7 @@ import ReleaseTransformations._
 
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
 import com.typesafe.tools.mima.plugin.MimaKeys
-import MimaKeys.{previousArtifact, binaryIssueFilters}
+import MimaKeys.{previousArtifacts, binaryIssueFilters}
 import com.typesafe.tools.mima.core._
 import com.typesafe.tools.mima.core.ProblemFilters._
 
@@ -143,9 +143,9 @@ lazy val publishSettings = Seq(
 )
 
 lazy val mimaSettings = mimaDefaultSettings ++ Seq(
-  previousArtifact := {
-    if(scalaVersion.value == "2.12.0-M3") None
-    else Some(organization.value %% moduleName.value % "1.1.0")
+  previousArtifacts := {
+    if(scalaVersion.value == "2.12.0-M3") Set()
+    else Set(organization.value %% moduleName.value % "1.1.0")
   },
 
   binaryIssueFilters ++= {
