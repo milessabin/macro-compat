@@ -78,9 +78,9 @@ which is compatible with the 2.10.x macro API.
 
 This is a young project, initially extracted out of the [export-hook][export-hook] project and massaged into a more or
 less usable form in free moments snatched during ICFP 2015. Since then a number of generous contributors have made
-additions to the backport component and it is now seeing use in several other projects. I hope to have backport
-coverage expanded sufficiently for all the macro API usage in shapeless in the near future and I would be delighted
-for more projects to pick it up and extend it to cover their needs as well.
+additions to the backport component and it is now seeing use in several other projects. As of version 1.1.1 backport
+coverage has been expanded sufficiently to cover all the macro API usage in shapeless. I would be delighted for more
+projects to pick it up and extend it to cover their needs as well.
 
 If you would like to see or contribute particuluar extensions to the backport, please create issues here or hop on the
 [gitter channel][macrocompat-gitter]. Discussion is also welcome on the [shapeless][shapeless-gitter] and
@@ -103,7 +103,7 @@ Builds are available for Scala 2.10.x, 2.11.x and 2.12.x for Scala JDK and Scala
 
 ```scala
 libraryDependencies ++= Seq(
-  "org.typelevel" %% "macro-compat" % "1.1.0",
+  "org.typelevel" %% "macro-compat" % "1.1.1",
   compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 )
 ```
@@ -112,7 +112,7 @@ libraryDependencies ++= Seq(
 
 As of version 1.0.7 macro-compat uses [MiMa][mima] to verify binary compatibility within minor versions. Binary
 compatibility was broken in 1.0.3 and again in 1.0.6. In version 1.0.7 binary compatability with 1.0.3-5 has been
-restored and 1.0.6 is now deprecated. The binary compatibility breaking changes have been moved to 1.1.0 and hopefully
+restored and 1.0.6 is now deprecated. The binary compatibility breaking changes were moved to 1.1.0 and hopefully
 the addition of MiMa to the build will make a recurrence of this sort of breakage much less likely in future.
 
 ## Building macro-compat
@@ -132,6 +132,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 + [marley][marley]
 + [Monocle][monocle]
 + [refined][refined]
++ [shapeless][shapeless]
 + [simulacrum][simulacrum]
 + [tfm][tfm]
 
