@@ -49,6 +49,21 @@ class MacroCompatTests extends FunSuite {
     assert(res == 13)
   }
 
+  test("No arg method, c.Tree") {
+    val res = Test.fooCT
+    assert(res == 23)
+  }
+
+  test("One arg method, c.Tree") {
+    val res = Test.barCT(23)
+    assert(res == "bar")
+  }
+
+  test("Variadic method, c.Tree") {
+    val res = Test.bazCT(1, 2, 3)
+    assert(res == 13)
+  }
+
   test("symbolOf") {
     val res = Test.symbolOf(new Foo)
     assert(res == "class Foo")

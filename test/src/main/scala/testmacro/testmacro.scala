@@ -31,6 +31,10 @@ object Test {
   def barE(i: Int): String = macro TestMacro.barEImpl
   def bazE(is: Int*): Int = macro TestMacro.bazEImpl
 
+  def fooCT: Int = macro TestMacro.fooCTImpl
+  def barCT(i: Int): String = macro TestMacro.barCTImpl
+  def bazCT(is: Int*): Int = macro TestMacro.bazCTImpl
+
   def quux[T](t: T): T = macro TestMacro.quuxImpl[T]
 
   def comp[T](t: T): String = macro TestMacro.compImpl[T]
@@ -141,6 +145,12 @@ class TestMacro(val c: whitebox.Context) extends TestMacroBase with TestUtil {
   def bazEImpl(is: c.Expr[Int]*): c.Expr[Int] = c.Expr[Int](q""" 13 """)
 
   def quuxEImpl[T: c.WeakTypeTag](t: c.Expr[T]): c.Expr[T] = c.Expr[T](t.tree)
+
+  def fooCTImpl: c.Tree = q""" 23 """
+
+  def barCTImpl(i: Tree): c.Tree = q""" "bar" """
+
+  def bazCTImpl(is: Tree*): c.Tree = q""" 13 """
 
   def compImpl[T: c.WeakTypeTag](t: c.Expr[T]): Tree = {
     val typ = weakTypeOf[T]

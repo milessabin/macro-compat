@@ -31,9 +31,11 @@ class BundleMacro[C <: Context](val c: C) {
 
   object TreeE {
     val TreeNme = newTypeName("Tree")
+    val CNme = newTermName("c")
     def unapply(t: Tree): Option[Tree] = t match {
       case Ident(TreeNme) => Some(tq"Any")
-      case _ => None
+      case Select(Ident(CNme), TreeNme) => Some(tq"Any")
+      case x => None
     }
   }
 
