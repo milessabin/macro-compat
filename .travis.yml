@@ -13,6 +13,10 @@ cache:
   - "$HOME/.ivy2/cache"
   - "$HOME/.sbt"
 
+before_cache:
+  - find "$HOME/.sbt" -name "*.lock" -print -delete
+  - find "$HOME/.ivy2" -name "ivydata-*.properties" -print -delete
+
 script:
   - if [[ "${TRAVIS_PULL_REQUEST}" == "false" &&
           "${TRAVIS_BRANCH}" == "master" &&
