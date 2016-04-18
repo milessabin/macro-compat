@@ -130,6 +130,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 + [catalysts][catalysts]
 + [export-hook][export-hook]
 + [expressier][expressier]
++ [latr][latr]
 + [marley][marley]
 + [Monocle][monocle]
 + [refined][refined]
@@ -172,3 +173,4 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 [ci]: https://travis-ci.org/milessabin/macro-compat
 [mima]: https://github.com/typesafehub/migration-manager
 [refined]: https://github.com/fthomas/refined
+[latr]: https://github.com/runarorama/latr
