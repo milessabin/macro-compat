@@ -69,7 +69,7 @@ lazy val test = crossProject.crossType(CrossType.Pure)
   .settings(noPublishSettings:_*)
   .settings(
     libraryDependencies ++= Seq(
-      "org.scalatest"  %%% "scalatest"  % "3.0.0-M16-SNAP3" % "test"
+      "org.scalatest"  %%% "scalatest"  % "3.0.0-M16-SNAP4" % "test"
     )
   )
   .jsSettings(commonJsSettings:_*)
