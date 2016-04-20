@@ -69,7 +69,7 @@ lazy val test = crossProject.crossType(CrossType.Pure)
   .settings(noPublishSettings:_*)
   .settings(
     libraryDependencies ++= Seq(
-      "org.scalatest"  %%% "scalatest"  % "3.0.0-M12" % "test",
+      "org.scalatest"  %%% "scalatest"  % "3.0.0-M16-SNAP4" % "test",
       "org.scalacheck" %%% "scalacheck" % "1.12.5"    % "test"
     )
   )
@@ -144,7 +144,7 @@ lazy val publishSettings = Seq(
 
 lazy val mimaSettings = mimaDefaultSettings ++ Seq(
   previousArtifacts := {
-    if(scalaVersion.value == "2.12.0-M3") Set()
+    if(scalaVersion.value == "2.12.0-M4") Set()
     else Set(organization.value %% moduleName.value % "1.1.0")
   },
 
