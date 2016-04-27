@@ -135,7 +135,7 @@ class BundleMacro[C <: Context](val c: C) {
         case TreeE(_)|ExprE(_)
           if vparamss.forall(_.forall {
             case ValDef(mods, _, _, _) if mods hasFlag IMPLICIT => true
-            case ValDef(_, _, TreeE(_)|ExprE(_)|Repeat(TreeE(_))|Repeat(ExprE(_))|WeakTypeTag(_), _) => true
+            case ValDef(_, _, TreeE(_)|ExprE(_)|Repeat(TreeE(_))|Repeat(ExprE(_))|WeakTypeTagE(_), _) => true
             case _ => false
           }) => Some(d)
         case _ => None

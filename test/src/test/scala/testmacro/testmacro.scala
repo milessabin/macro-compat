@@ -34,6 +34,16 @@ class MacroCompatTests extends FunSuite {
     assert(res == 13)
   }
 
+  test("Generic method, implicit WeakTypeTag") {
+    val res = Test.quux( "foo" )
+    assert(res == "foo")
+  }
+
+  test("Generic method, explicit WeakTypeTag") {
+    val res = Test.quuxExplicit( "foo" )
+    assert(res == "foo")
+  }
+
   test("No arg method, Expr") {
     val res = Test.fooE
     assert(res == 23)
