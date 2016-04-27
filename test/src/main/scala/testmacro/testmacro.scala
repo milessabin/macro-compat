@@ -37,6 +37,8 @@ object Test {
 
   def quux[T](t: T): T = macro TestMacro.quuxImpl[T]
 
+  def quuxExplicit[T](t: T): T = macro TestMacro.quuxExplicitImpl[T]
+
   def comp[T](t: T): String = macro TestMacro.compImpl[T]
 
   def symbolOf[T](t: T): String = macro TestMacro.symbolOfImpl[T]
@@ -137,6 +139,8 @@ class TestMacro(val c: whitebox.Context) extends TestMacroBase with TestUtil {
   def bazImpl(is: Tree*): Tree = q""" 13 """
 
   def quuxImpl[T: WeakTypeTag](t: Tree): Tree = t
+
+  def quuxExplicitImpl[T](t: Tree)(T: WeakTypeTag[T]): Tree = t
 
   def fooEImpl: c.Expr[Int] = c.Expr[Int](q""" 23 """)
 
