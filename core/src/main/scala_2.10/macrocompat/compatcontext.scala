@@ -16,13 +16,14 @@
 
 package macrocompat
 
-import scala.language.postfixOps
 import scala.language.experimental.macros
+import scala.language.postfixOps
 
 import scala.annotation.tailrec
 import scala.collection.immutable.ListMap
-import scala.reflect.macros.{ Context, TypecheckException }
 import scala.reflect.macros.runtime.{ Context => RuntimeContext }
+import scala.reflect.macros.{ Attachments, Context, TypecheckException }
+import scala.reflect.{ ClassTag, classTag }
 
 // Interface only. Implementation should be in RuntimeCompatContext
 sealed trait CompatContext extends Context {
@@ -157,6 +158,12 @@ sealed trait CompatContext extends Context {
     }
 
     implicit def tupleToImplicitCandidate(t: (Type, Tree)): ImplicitCandidate211
+
+    implicit def AttachmentsOps(as: Attachments): AttachmentsOps
+    abstract class AttachmentsOps {
+      def contains[T: ClassTag]: Boolean
+      def isEmpty: Boolean
+    }
   }
 }
 
@@ -437,5 +444,16 @@ class RuntimeCompatContext(val c: RuntimeContext) extends RuntimeContext with Co
         case Right((pre, sym, pt, tree)) => ImplicitCandidate211(pre, sym, pt, tree)
       }
     }
+
+    implicit def AttachmentsOps(as: Attachments): AttachmentsOps =
+      new AttachmentsOps {
+        private def matchesTag[T: ClassTag](datum: Any) =
+          classTag[T].runtimeClass.isInstance(datum)
+
+        def contains[T: ClassTag]: Boolean =
+          !isEmpty && (as.all exists matchesTag[T])
+
+        def isEmpty: Boolean = true
+      }
   }
 }
