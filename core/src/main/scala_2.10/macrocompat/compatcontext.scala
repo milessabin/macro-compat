@@ -164,6 +164,8 @@ sealed trait CompatContext extends Context {
       def contains[T: ClassTag]: Boolean
       def isEmpty: Boolean
     }
+
+    def noSelfType: ValDef
   }
 }
 
@@ -455,5 +457,7 @@ class RuntimeCompatContext(val c: RuntimeContext) extends RuntimeContext with Co
 
         def isEmpty: Boolean = true
       }
+
+    lazy val noSelfType = emptyValDef
   }
 }
