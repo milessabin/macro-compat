@@ -21,6 +21,7 @@ import scala.language.postfixOps
 
 import scala.annotation.tailrec
 import scala.collection.immutable.ListMap
+import scala.reflect.internal.Flags._
 import scala.reflect.macros.runtime.{ Context => RuntimeContext }
 import scala.reflect.macros.{ Attachments, Context, TypecheckException }
 import scala.reflect.{ ClassTag, classTag }
@@ -129,6 +130,9 @@ sealed trait CompatContext extends Context {
       def isConstructor: Boolean
       def isAbstract: Boolean
       def overrides: List[Symbol]
+
+      def isPrivateThis: Boolean
+      def isProtectedThis: Boolean
     }
 
     implicit def TreeOps(tree: Tree): TreeOps
@@ -345,6 +349,10 @@ class RuntimeCompatContext(val c: RuntimeContext) extends RuntimeContext with Co
         def isAbstract: Boolean = sym.isAbstractClass
 
         def overrides: List[Symbol] = sym.allOverriddenSymbols
+
+        def isPrivateThis: Boolean = (sym hasFlag PRIVATE) && (sym hasFlag LOCAL)
+
+        def isProtectedThis: Boolean = (sym hasFlag PROTECTED) && (sym hasFlag LOCAL)
       }
 
     implicit def TreeOps(tree: Tree): TreeOps =
