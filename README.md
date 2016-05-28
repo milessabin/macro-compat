@@ -105,6 +105,7 @@ Builds are available for Scala 2.10.x, 2.11.x and 2.12.x for Scala JDK and Scala
 ```scala
 libraryDependencies ++= Seq(
   "org.typelevel" %% "macro-compat" % "1.1.1",
+  "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
   compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 )
 ```
