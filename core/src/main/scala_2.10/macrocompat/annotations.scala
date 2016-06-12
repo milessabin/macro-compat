@@ -19,9 +19,3 @@ package scala
 package object annotation {
   type compileTimeOnly = scala.reflect.internal.annotations.compileTimeOnly
 }
-
-package annotation {
-  import scala.annotation.meta._
-  @getter @setter @beanGetter @beanSetter @companionClass @companionMethod
-  private[scala] final class compileTimeOnly(message: String) extends StaticAnnotation
-}
