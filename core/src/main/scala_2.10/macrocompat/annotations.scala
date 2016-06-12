@@ -22,6 +22,6 @@ package object annotation {
 
 package annotation {
   import scala.annotation.meta._
-  @bridge @getter @setter @beanGetter @beanSetter @companionClass @companionMethod
-  final class compileTimeOnly(message: String) extends StaticAnnotation
+  @getter @setter @beanGetter @beanSetter @companionClass @companionMethod
+  private[scala] final class compileTimeOnly(message: String) extends StaticAnnotation
 }
