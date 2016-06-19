@@ -169,7 +169,7 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 [macrocompat-gitter]: https://gitter.im/milessabin/macro-compat
 [typelevel]: http://typelevel.org/
 [codeofconduct]: http://typelevel.org/conduct.html
-[catalysts]: https://github.com/InTheNow/catalysts
+[catalysts]: https://github.com/typelevel/catalysts
 [sonatype]: https://oss.sonatype.org/index.html#nexus-search;quick~macro-compat
 [ci]: https://travis-ci.org/milessabin/macro-compat
 [mima]: https://github.com/typesafehub/migration-manager
