@@ -1,9 +1,9 @@
 language: scala
 
 scala:
-- 2.11.7
 - 2.10.6
-- 2.12.0-M3
+- 2.11.8
+- 2.12.0-M5
 
 jdk:
 - oraclejdk8
@@ -12,6 +12,10 @@ cache:
   directories:
   - "$HOME/.ivy2/cache"
   - "$HOME/.sbt"
+
+before_cache:
+  - find "$HOME/.sbt" -name "*.lock" -print -delete
+  - find "$HOME/.ivy2" -name "ivydata-*.properties" -print -delete
 
 script:
   - if [[ "${TRAVIS_PULL_REQUEST}" == "false" &&
