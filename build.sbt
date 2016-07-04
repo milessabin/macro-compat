@@ -150,8 +150,10 @@ lazy val noPublishSettings = Seq(
 
 lazy val mimaSettings = mimaDefaultSettings ++ Seq(
   previousArtifacts := {
-    if(scalaVersion.value == "2.12.0-M5") Set()
-    else Set(organization.value %% moduleName.value % "1.1.0")
+    if (CrossVersion isScalaApiCompatible scalaVersion.value)
+      Set(organization.value %% moduleName.value % "1.1.0")
+    else
+      Set.empty
   },
 
   binaryIssueFilters ++= {
