@@ -12,7 +12,7 @@ import com.typesafe.tools.mima.core.ProblemFilters._
 lazy val buildSettings = Seq(
   organization := "org.typelevel",
   scalaVersion := "2.10.6",
-  crossScalaVersions := Seq("2.10.6", "2.11.7", "2.12.0-M3")
+  crossScalaVersions := Seq("2.10.6", "2.11.7", "2.12.0-M5")
 )
 
 lazy val commonSettings = Seq(
@@ -69,8 +69,7 @@ lazy val test = crossProject.crossType(CrossType.Pure)
   .settings(noPublishSettings:_*)
   .settings(
     libraryDependencies ++= Seq(
-      "org.scalatest"  %%% "scalatest"  % "3.0.0-M12" % "test",
-      "org.scalacheck" %%% "scalacheck" % "1.12.5"    % "test"
+      "org.scalatest"  %%% "scalatest"  % "3.0.0-RC4" % "test"
     )
   )
   .jsSettings(commonJsSettings:_*)
@@ -144,7 +143,7 @@ lazy val publishSettings = Seq(
 
 lazy val mimaSettings = mimaDefaultSettings ++ Seq(
   previousArtifacts := {
-    if(scalaVersion.value == "2.12.0-M3") Set()
+    if(scalaVersion.value == "2.12.0-M5") Set()
     else Set(organization.value %% moduleName.value % "1.1.0")
   },
 
