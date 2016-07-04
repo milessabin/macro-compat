@@ -8,7 +8,7 @@ macros can be written just once, for the current API, and still be portable to e
 [![Stories in Ready](https://badge.waffle.io/milessabin/macro-compat.png?label=Ready)](https://waffle.io/milessabin/macro-compat)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/milessabin/macro-compat)
 [![Maven Central](https://img.shields.io/maven-central/v/org.typelevel/macro-compat_2.11.svg)](https://maven-badges.herokuapp.com/maven-central/org.typelevel/macro-compat_2.11)
-[![Scala.js](https://www.scala-js.org/assets/badges/scalajs-0.6.6.svg)](https://www.scala-js.org)
+[![Scala.js](https://www.scala-js.org/assets/badges/scalajs-0.6.8.svg)](https://www.scala-js.org)
 
 ## Why you should use macro-compat
 
@@ -119,7 +119,7 @@ the addition of MiMa to the build will make a recurrence of this sort of breakag
 
 ## Building macro-compat
 
-macro-compat is built with SBT 0.13.9 or later.
+macro-compat is built with SBT 0.13.11 or later.
 
 ## Participation
 
