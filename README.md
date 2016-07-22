@@ -60,7 +60,7 @@ object Test {
 class TestMacro(val c: whitebox.Context) {
   import c.universe._
 
-  def fooImpl: Tree = q""" 23 """
+  def fooImpl: Tree = q""" 23 """ // explicit return type : Tree required
 
   def barImpl(i: Tree): Tree = q""" "bar" """
 
