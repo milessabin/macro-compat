@@ -4,7 +4,7 @@ import ReleaseTransformations._
 
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
 import com.typesafe.tools.mima.plugin.MimaKeys
-import MimaKeys.{previousArtifacts, binaryIssueFilters}
+import MimaKeys.{mimaPreviousArtifacts, mimaBinaryIssueFilters}
 import com.typesafe.tools.mima.core._
 import com.typesafe.tools.mima.core.ProblemFilters._
 
@@ -12,10 +12,12 @@ import com.typesafe.tools.mima.core.ProblemFilters._
 lazy val buildSettings = Seq(
   organization := "org.typelevel",
   scalaVersion := "2.10.6",
-  crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.0-RC1")
+  crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.0-RC2")
 )
 
 lazy val commonSettings = Seq(
+  incOptions := incOptions.value.withLogRecompileOnMacro(false),
+
   scalacOptions := Seq(
     "-feature",
     "-language:higherKinds",
@@ -78,7 +80,7 @@ lazy val test = crossProject.crossType(CrossType.Pure)
 lazy val testJVM = test.jvm
 lazy val testJS = test.js
 
-addCommandAlias("validate", ";root;compile;mima-report-binary-issues;test")
+addCommandAlias("validate", ";root;compile;mimaReportBinaryIssues;test")
 addCommandAlias("release-all", ";root;release")
 addCommandAlias("js", ";project coreJS")
 addCommandAlias("jvm", ";project coreJVM")
@@ -121,9 +123,9 @@ lazy val publishSettings = Seq(
   publishMavenStyle := true,
   publishArtifact in Test := false,
   pomIncludeRepository := { _ => false },
-  publishTo <<= version { (v: String) =>
+  publishTo := {
     val nexus = "https://oss.sonatype.org/"
-    if (v.trim.endsWith("SNAPSHOT"))
+    if (scalaVersion.value.trim.endsWith("SNAPSHOT"))
       Some("snapshots" at nexus + "content/repositories/snapshots")
     else
       Some("releases"  at nexus + "service/local/staging/deploy/maven2")
@@ -149,12 +151,12 @@ lazy val noPublishSettings = Seq(
 )
 
 lazy val mimaSettings = mimaDefaultSettings ++ Seq(
-  previousArtifacts := {
-    if(scalaVersion.value == "2.12.0-RC1") Set()
+  mimaPreviousArtifacts := {
+    if(scalaVersion.value == "2.12.0-RC2") Set()
     else Set(organization.value %% moduleName.value % "1.1.0")
   },
 
-  binaryIssueFilters ++= {
+  mimaBinaryIssueFilters ++= {
     // Filtering the methods that were added since the checked version
     // (these only break forward compatibility, not the backward one)
     Seq(
