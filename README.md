@@ -119,7 +119,7 @@ the addition of MiMa to the build will make a recurrence of this sort of breakag
 
 ## Building macro-compat
 
-macro-compat is built with SBT 0.13.11 or later.
+macro-compat is built with SBT 0.13.13 or later.
 
 ## Participation
 

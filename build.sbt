@@ -12,7 +12,7 @@ import com.typesafe.tools.mima.core.ProblemFilters._
 lazy val buildSettings = Seq(
   organization := "org.typelevel",
   scalaVersion := "2.10.6",
-  crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.0-RC2")
+  crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.0")
 )
 
 lazy val commonSettings = Seq(
@@ -88,9 +88,9 @@ addCommandAlias("root", ";project root")
 
 lazy val scalaMacroDependencies: Seq[Setting[_]] = Seq(
   libraryDependencies ++= Seq(
-    "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
-    "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-    compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+    scalaOrganization.value % "scala-reflect" % scalaVersion.value % "provided",
+    scalaOrganization.value % "scala-compiler" % scalaVersion.value % "provided",
+    compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.patch)
   ),
   libraryDependencies ++= {
     CrossVersion.partialVersion(scalaVersion.value) match {
@@ -152,7 +152,7 @@ lazy val noPublishSettings = Seq(
 
 lazy val mimaSettings = mimaDefaultSettings ++ Seq(
   mimaPreviousArtifacts := {
-    if(scalaVersion.value == "2.12.0-RC2") Set()
+    if(scalaVersion.value == "2.12.0") Set()
     else Set(organization.value %% moduleName.value % "1.1.0")
   },
 
