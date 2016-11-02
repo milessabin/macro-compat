@@ -4,7 +4,7 @@ import ReleaseTransformations._
 
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
 import com.typesafe.tools.mima.plugin.MimaKeys
-import MimaKeys.{previousArtifacts, binaryIssueFilters}
+import MimaKeys.{mimaPreviousArtifacts, mimaBinaryIssueFilters}
 import com.typesafe.tools.mima.core._
 import com.typesafe.tools.mima.core.ProblemFilters._
 
@@ -12,10 +12,12 @@ import com.typesafe.tools.mima.core.ProblemFilters._
 lazy val buildSettings = Seq(
   organization := "org.typelevel",
   scalaVersion := "2.10.6",
-  crossScalaVersions := Seq("2.10.6", "2.11.7", "2.12.0-M3")
+  crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.0")
 )
 
 lazy val commonSettings = Seq(
+  incOptions := incOptions.value.withLogRecompileOnMacro(false),
+
   scalacOptions := Seq(
     "-feature",
     "-language:higherKinds",
@@ -44,7 +46,7 @@ lazy val commonJvmSettings = Seq(
   parallelExecution in Test := false
 )
 
-lazy val coreSettings = buildSettings ++ commonSettings ++ publishSettings
+lazy val coreSettings = buildSettings ++ commonSettings ++ publishSettings ++ releaseSettings
 
 lazy val root = project.in(file("."))
   .aggregate(coreJS, coreJVM, testJS, testJVM)
@@ -69,8 +71,7 @@ lazy val test = crossProject.crossType(CrossType.Pure)
   .settings(noPublishSettings:_*)
   .settings(
     libraryDependencies ++= Seq(
-      "org.scalatest"  %%% "scalatest"  % "3.0.0-M12" % "test",
-      "org.scalacheck" %%% "scalacheck" % "1.12.5"    % "test"
+      "org.scalatest"  %%% "scalatest"  % "3.0.0" % "test"
     )
   )
   .jsSettings(commonJsSettings:_*)
@@ -79,7 +80,7 @@ lazy val test = crossProject.crossType(CrossType.Pure)
 lazy val testJVM = test.jvm
 lazy val testJS = test.js
 
-addCommandAlias("validate", ";root;compile;mima-report-binary-issues;test")
+addCommandAlias("validate", ";root;compile;mimaReportBinaryIssues;test")
 addCommandAlias("release-all", ";root;release")
 addCommandAlias("js", ";project coreJS")
 addCommandAlias("jvm", ";project coreJVM")
@@ -87,9 +88,9 @@ addCommandAlias("root", ";project root")
 
 lazy val scalaMacroDependencies: Seq[Setting[_]] = Seq(
   libraryDependencies ++= Seq(
-    "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
-    "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
-    compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+    scalaOrganization.value % "scala-reflect" % scalaVersion.value % "provided",
+    scalaOrganization.value % "scala-compiler" % scalaVersion.value % "provided",
+    compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.patch)
   ),
   libraryDependencies ++= {
     CrossVersion.partialVersion(scalaVersion.value) match {
@@ -104,6 +105,8 @@ lazy val scalaMacroDependencies: Seq[Setting[_]] = Seq(
   }
 )
 
+def scalaPartV = Def setting (CrossVersion partialVersion scalaVersion.value)
+
 lazy val crossVersionSharedSources: Seq[Setting[_]] =
   Seq(Compile, Test).map { sc =>
     (unmanagedSourceDirectories in sc) ++= {
@@ -117,20 +120,19 @@ lazy val crossVersionSharedSources: Seq[Setting[_]] =
   }
 
 lazy val publishSettings = Seq(
-  releaseCrossBuild := true,
-  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
-  homepage := Some(url("https://github.com/milessabin/macro-compat")),
-  licenses := Seq("Apache 2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
   publishMavenStyle := true,
   publishArtifact in Test := false,
   pomIncludeRepository := { _ => false },
-  publishTo <<= version { (v: String) =>
+  publishTo := {
     val nexus = "https://oss.sonatype.org/"
-    if (v.trim.endsWith("SNAPSHOT"))
+    if (version.value.trim.endsWith("SNAPSHOT"))
       Some("snapshots" at nexus + "content/repositories/snapshots")
     else
       Some("releases"  at nexus + "service/local/staging/deploy/maven2")
   },
+  homepage := Some(url("https://github.com/milessabin/macro-compat")),
+  licenses := Seq("Apache 2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
+  scmInfo := Some(ScmInfo(url("https://github.com/milessabin/macro-compat"), "scm:git:git@github.com:milessabin/macro-compat.git")),
   pomExtra := (
     <developers>
       <developer>
@@ -142,13 +144,19 @@ lazy val publishSettings = Seq(
   )
 )
 
+lazy val noPublishSettings = Seq(
+  publish := (),
+  publishLocal := (),
+  publishArtifact := false
+)
+
 lazy val mimaSettings = mimaDefaultSettings ++ Seq(
-  previousArtifacts := {
-    if(scalaVersion.value == "2.12.0-M3") Set()
+  mimaPreviousArtifacts := {
+    if(scalaVersion.value == "2.12.0") Set()
     else Set(organization.value %% moduleName.value % "1.1.0")
   },
 
-  binaryIssueFilters ++= {
+  mimaBinaryIssueFilters ++= {
     // Filtering the methods that were added since the checked version
     // (these only break forward compatibility, not the backward one)
     Seq(
@@ -157,15 +165,9 @@ lazy val mimaSettings = mimaDefaultSettings ++ Seq(
   }
 )
 
-def scalaPartV = Def setting (CrossVersion partialVersion scalaVersion.value)
-
-lazy val noPublishSettings = Seq(
-  publish := (),
-  publishLocal := (),
-  publishArtifact := false
-)
-
-lazy val sharedReleaseProcess = Seq(
+lazy val releaseSettings = Seq(
+  releaseCrossBuild := true,
+  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
   releaseProcess := Seq[ReleaseStep](
     checkSnapshotDependencies,
     inquireVersions,

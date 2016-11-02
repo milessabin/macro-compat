@@ -8,6 +8,7 @@ macros can be written just once, for the current API, and still be portable to e
 [![Stories in Ready](https://badge.waffle.io/milessabin/macro-compat.png?label=Ready)](https://waffle.io/milessabin/macro-compat)
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/milessabin/macro-compat)
 [![Maven Central](https://img.shields.io/maven-central/v/org.typelevel/macro-compat_2.11.svg)](https://maven-badges.herokuapp.com/maven-central/org.typelevel/macro-compat_2.11)
+[![Scala.js](https://www.scala-js.org/assets/badges/scalajs-0.6.8.svg)](https://www.scala-js.org)
 
 ## Why you should use macro-compat
 
@@ -59,7 +60,7 @@ object Test {
 class TestMacro(val c: whitebox.Context) {
   import c.universe._
 
-  def fooImpl: Tree = q""" 23 """
+  def fooImpl: Tree = q""" 23 """ // explicit return type : Tree required
 
   def barImpl(i: Tree): Tree = q""" "bar" """
 
@@ -104,6 +105,7 @@ Builds are available for Scala 2.10.x, 2.11.x and 2.12.x for Scala JDK and Scala
 ```scala
 libraryDependencies ++= Seq(
   "org.typelevel" %% "macro-compat" % "1.1.1",
+  "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
   compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 )
 ```
@@ -117,7 +119,7 @@ the addition of MiMa to the build will make a recurrence of this sort of breakag
 
 ## Building macro-compat
 
-macro-compat is built with SBT 0.13.9 or later.
+macro-compat is built with SBT 0.13.13 or later.
 
 ## Participation
 
@@ -129,7 +131,9 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 + [catalysts][catalysts]
 + [export-hook][export-hook]
 + [expressier][expressier]
++ [latr][latr]
 + [marley][marley]
++ [Monix][monix]
 + [Monocle][monocle]
 + [refined][refined]
 + [shapeless][shapeless]
@@ -160,14 +164,16 @@ channels (Gitter, github, etc.) to be welcoming environments for everyone.
 [simulacrum]: https://github.com/mpilquist/simulacrum
 [tfm]: https://github.com/adelbertc/tfm
 [marley]: https://github.com/guardian/marley
+[monix]: https://monix.io
 [monocle]: https://github.com/julien-truffaut/Monocle
 [shapeless-gitter]: https://gitter.im/milessabin/shapeless
 [cats-gitter]: https://gitter.im/non/cats
 [macrocompat-gitter]: https://gitter.im/milessabin/macro-compat
 [typelevel]: http://typelevel.org/
 [codeofconduct]: http://typelevel.org/conduct.html
-[catalysts]: https://github.com/InTheNow/catalysts
+[catalysts]: https://github.com/typelevel/catalysts
 [sonatype]: https://oss.sonatype.org/index.html#nexus-search;quick~macro-compat
 [ci]: https://travis-ci.org/milessabin/macro-compat
 [mima]: https://github.com/typesafehub/migration-manager
 [refined]: https://github.com/fthomas/refined
+[latr]: https://github.com/runarorama/latr
