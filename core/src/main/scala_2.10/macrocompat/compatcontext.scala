@@ -346,7 +346,7 @@ class RuntimeCompatContext(val c: RuntimeContext) extends RuntimeContext with Co
 
         def isConstructor: Boolean = sym.isMethod &&sym.asMethod.isConstructor
 
-        def isAbstract: Boolean = sym.isAbstractClass
+        def isAbstract: Boolean = sym.isAbstractClass || sym.isDeferred || sym.isAbstractType
 
         def overrides: List[Symbol] = sym.allOverriddenSymbols
 
