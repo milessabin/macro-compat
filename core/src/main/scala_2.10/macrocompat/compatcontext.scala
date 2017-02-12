@@ -275,10 +275,7 @@ class RuntimeCompatContext(val c: RuntimeContext) extends RuntimeContext with Co
 
     implicit def TypeOps(tpe: Type): TypeOps =
       new TypeOps {
-        def typeParams = tpe match {
-          case TypeRef(_, sym, _) => sym.asType.typeParams
-          case _ => tpe.typeSymbol.asType.typeParams
-        }
+        def typeParams = tpe.typeParams
 
         def typeArgs: List[Type] = {
           import scala.language.reflectiveCalls
