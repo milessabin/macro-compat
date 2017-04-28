@@ -16,15 +16,18 @@
 
 package companionobject
 
-import org.scalatest.FunSuite
+import org.junit.Test
+import org.junit.Assert._
 
-class MacroCompatTests extends FunSuite {
-  test("ClassWithCompanionObject") {
+class MacroCompatTests {
+  @Test
+  def classWithCompanionObject: Unit = {
     val res = ClassWithCompanionObject.foo
     assert(res == 1)
   }
 
-  test("ClassWithCompanionObjectWithMixin") {
+  @Test
+  def classWithCompanionObjectWithMixin: Unit = {
     val res = ClassWithCompanionObjectWithMixin.foo
     assert(res == 1)
 
@@ -32,7 +35,8 @@ class MacroCompatTests extends FunSuite {
     assert(res2 == 1)
   }
 
-  test("ClassWithCompanionObjectWithParent") {
+  @Test
+  def classWithCompanionObjectWithParent: Unit = {
     val res = ClassWithCompanionObjectWithParent.foo
     assert(res == 1)
 

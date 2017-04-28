@@ -22,7 +22,7 @@ import scala.reflect.macros.whitebox
 
 import macrocompat.bundle
 
-object Test {
+object TestObj {
   def foo: Int = macro TestMacro.fooImpl
   def bar(i: Int): String = macro TestMacro.barImpl
   def baz(is: Int*): Int = macro TestMacro.bazImpl
@@ -227,7 +227,7 @@ class TestMacro(val c: whitebox.Context) extends TestMacroBase with TestUtil {
 
     annotations match {
       case Nil => c.abort(c.enclosingPosition, s"No annotation found on $tpe")
-      case ann :: _ => q" _root_.testmacro.Test.AnnotationType.instance[$tpe, ${ann.tree.tpe}] "
+      case ann :: _ => q" _root_.testmacro.TestObj.AnnotationType.instance[$tpe, ${ann.tree.tpe}] "
     }
   }
 

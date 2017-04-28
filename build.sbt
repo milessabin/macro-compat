@@ -12,7 +12,7 @@ import com.typesafe.tools.mima.core.ProblemFilters._
 lazy val buildSettings = Seq(
   organization := "org.typelevel",
   scalaVersion := "2.10.6",
-  crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.0")
+  crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.2", "2.13.0-M1")
 )
 
 lazy val commonSettings = Seq(
@@ -48,6 +48,15 @@ lazy val commonJvmSettings = Seq(
 
 lazy val coreSettings = buildSettings ++ commonSettings ++ publishSettings ++ releaseSettings
 
+def configureJUnit(crossProject: CrossProject) = {
+  crossProject
+  .jsConfigure(_.enablePlugins(ScalaJSJUnitPlugin))
+  .jvmSettings(
+    libraryDependencies +=
+      "com.novocode" % "junit-interface" % "0.11" % "test"
+  )
+}
+
 lazy val root = project.in(file("."))
   .aggregate(coreJS, coreJVM, testJS, testJVM)
   .dependsOn(coreJS, coreJVM, testJS, testJVM)
@@ -65,15 +74,11 @@ lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
 
 lazy val test = crossProject.crossType(CrossType.Pure)
+  .configureCross(configureJUnit)
   .dependsOn(core)
   .settings(moduleName := "macro-compat-test")
   .settings(coreSettings:_*)
   .settings(noPublishSettings:_*)
-  .settings(
-    libraryDependencies ++= Seq(
-      "org.scalatest"  %%% "scalatest"  % "3.0.0" % "test"
-    )
-  )
   .jsSettings(commonJsSettings:_*)
   .jvmSettings(commonJvmSettings:_*)
 
@@ -152,7 +157,7 @@ lazy val noPublishSettings = Seq(
 
 lazy val mimaSettings = mimaDefaultSettings ++ Seq(
   mimaPreviousArtifacts := {
-    if(scalaVersion.value == "2.12.0") Set()
+    if(scalaVersion.value == "2.12.2" || scalaVersion.value == "2.13.0-M1") Set()
     else Set(organization.value %% moduleName.value % "1.1.0")
   },
 
