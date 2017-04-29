@@ -38,3 +38,11 @@ notifications:
   webhooks:
     urls:
       - https://webhooks.gitter.im/e/a4f66c5cc6ca6aae0e94
+
+matrix:
+  include:
+  - scala: 2.13.0-M1
+    jdk: oraclejdk8
+    script:
+    # TODO https://github.com/scalatest/scalatest/issues/1152
+    - sbt ++${TRAVIS_SCALA_VERSION} testJVM/test
