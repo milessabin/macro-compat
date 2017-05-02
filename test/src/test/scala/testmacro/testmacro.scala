@@ -16,130 +16,180 @@
 
 package testmacro
 
-import org.scalatest.FunSuite
+import org.junit.Test
+import org.junit.Assert._
 
-class MacroCompatTests extends FunSuite {
-  test("No arg method, Tree") {
-    val res = Test.foo
+class MacroCompatTests {
+  @Test
+  def noArgMethodTree: Unit = {
+    val res = TestObj.foo
     assert(res == 23)
   }
 
-  test("One arg method, Tree") {
-    val res = Test.bar(23)
+  @Test
+  def oneArgMethodTree: Unit = {
+    val res = TestObj.bar(23)
     assert(res == "bar")
   }
 
-  test("Variadic method, Tree") {
-    val res = Test.baz(1, 2, 3)
+  @Test
+  def variadicMethodTree: Unit = {
+    val res = TestObj.baz(1, 2, 3)
     assert(res == 13)
   }
 
-  test("No arg method, Expr") {
-    val res = Test.fooE
+  @Test
+  def genericMethodImplicitweakTypeTag: Unit = {
+    val res = TestObj.quux( "foo" )
+    assert(res == "foo")
+  }
+
+  @Test
+  def genericMethodExplicitweakTypeTag: Unit = {
+    val res = TestObj.quuxExplicit( "foo" )
+    assert(res == "foo")
+  }
+
+  @Test
+  def noArgMethodExpr: Unit = {
+    val res = TestObj.fooE
     assert(res == 23)
   }
 
-  test("One arg method, Expr") {
-    val res = Test.barE(23)
+  @Test
+  def oneArgMethodExpr: Unit = {
+    val res = TestObj.barE(23)
     assert(res == "bar")
   }
 
-  test("Variadic method, Expr") {
-    val res = Test.bazE(1, 2, 3)
+  @Test
+  def variadicMethodExpr: Unit = {
+    val res = TestObj.bazE(1, 2, 3)
     assert(res == 13)
   }
 
-  test("symbolOf") {
-    val res = Test.symbolOf(new Foo)
+  @Test
+  def noArgMethodCTree: Unit = {
+    val res = TestObj.fooCT
+    assert(res == 23)
+  }
+
+  @Test
+  def oneArgMethodCTree: Unit = {
+    val res = TestObj.barCT(23)
+    assert(res == "bar")
+  }
+
+  @Test
+  def variadicMethodCTree: Unit = {
+    val res = TestObj.bazCT(1, 2, 3)
+    assert(res == 13)
+  }
+
+  @Test
+  def symbolOf: Unit = {
+    val res = TestObj.symbolOf(new Foo)
     assert(res == "class Foo")
 
-    val res2 = Test.symbolOf(Foo)
+    val res2 = TestObj.symbolOf(Foo)
     assert(res2 == "object Foo")
 
-    val res3 = Test.symbolOf(new Bar)
+    val res3 = TestObj.symbolOf(new Bar)
     assert(res3 == "class Bar")
 
-    val res4 = Test.symbolOf(Baz)
+    val res4 = TestObj.symbolOf(Baz)
     assert(res4 == "object Baz")
   }
 
-  test("Accessing companion") {
-    val res = Test.comp(new Foo)
+  @Test
+  def accessingCompanion: Unit = {
+    val res = TestObj.comp(new Foo)
     assert(res == "testmacro.Foo.type")
 
-    val res2 = Test.comp(Foo)
+    val res2 = TestObj.comp(Foo)
     assert(res2 == "testmacro.Foo")
 
-    val res3 = Test.comp(new Bar)
+    val res3 = TestObj.comp(new Bar)
     assert(res3 == "<notype>")
 
-    val res4 = Test.comp(Baz)
+    val res4 = TestObj.comp(Baz)
     assert(res4 == "<notype>")
   }
 
-  test("Accessing companion symbol") {
-    val res = Test.compSym(new Foo)
+  @Test
+  def accessingCompanionSymbol: Unit = {
+    val res = TestObj.compSym(new Foo)
     assert(res == "object Foo")
 
-    val res2 = Test.compSym(Foo)
+    val res2 = TestObj.compSym(Foo)
     assert(res2 == "class Foo")
 
-    val res3 = Test.compSym(new Bar)
+    val res3 = TestObj.compSym(new Bar)
     assert(res3 == "<none>")
 
-    val res4 = Test.compSym(Baz)
+    val res4 = TestObj.compSym(Baz)
     assert(res4 == "<none>")
   }
 
-  test("Companion reference") {
-    val res: Foo.type = Test.ref(new Foo)
+  @Test
+  def companionReference: Unit = {
+    val res: Foo.type = TestObj.ref(new Foo)
     assert((res: Foo.type) eq Foo)
 
   }
 
-  test("Typecheck") {
-    Test.typecheck
+  @Test
+  def typecheck: Unit = {
+    TestObj.typecheck
   }
 
-  test("Modifiers") {
-    Test.modifiers
+  @Test
+  def modifiers: Unit = {
+    TestObj.modifiers
   }
 
-  test("Untypecheck") {
-    val res = Test.untypecheck(23)
+  @Test
+  def untypecheck: Unit = {
+    val res = TestObj.untypecheck(23)
     assert((res: Int) == 23)
   }
 
-  test("Dealias types") {
+  @Test
+  def dealiasTypes: Unit = {
     type T = List[Int]
-    Test.ensureOneTypeArg[T]
+    TestObj.ensureOneTypeArg[T]
   }
 
-  test("Fresh name") {
-    val nme = Test.freshName
+  @Test
+  def freshName: Unit = {
+    val nme = TestObj.freshName
   }
 
-  test("Annotation") {
+  @Test
+  def annotation: Unit = {
     class Annotation extends scala.annotation.StaticAnnotation
     @Annotation trait T
 
-    val annTpe = Test.AnnotationType[T]
+    val annTpe = TestObj.AnnotationType[T]
     val a = new Annotation
     val a0: annTpe.Ann = a
   }
 
-  test("ImplicitCandidate") {
-    import Test.materialize
+  @Test
+  def implicitCandidate: Unit = {
+    import TestObj.materialize
     val res = implicitly[List[String]]
     assert(res == List("materialize"))
   }
 
-  test("finalResultType") {
-    Test.finalResultType
+  @Test
+  def finalResultType: Unit = {
+    TestObj.finalResultType
   }
 
-  test("dealiasTypeArgs") {
-    Test.dealiasTypeArgs
+  @Test
+  def dealiasTypeArgs: Unit = {
+    TestObj.dealiasTypeArgs
   }
 }
 
