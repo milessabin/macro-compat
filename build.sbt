@@ -12,7 +12,7 @@ import com.typesafe.tools.mima.core.ProblemFilters._
 lazy val buildSettings = Seq(
   organization := "org.typelevel",
   scalaVersion := "2.10.6",
-  crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.2", "2.13.0-M1")
+  crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.2", "2.13.0-M2")
 )
 
 lazy val commonSettings = Seq(
@@ -157,7 +157,7 @@ lazy val noPublishSettings = Seq(
 
 lazy val mimaSettings = mimaDefaultSettings ++ Seq(
   mimaPreviousArtifacts := {
-    if(scalaVersion.value == "2.12.2" || scalaVersion.value == "2.13.0-M1") Set()
+    if(scalaVersion.value == "2.12.2" || scalaVersion.value == "2.13.0-M2") Set()
     else Set(organization.value %% moduleName.value % "1.1.0")
   },
 
