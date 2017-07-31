@@ -157,7 +157,7 @@ lazy val noPublishSettings = Seq(
 
 lazy val mimaSettings = mimaDefaultSettings ++ Seq(
   mimaPreviousArtifacts := {
-    if(scalaVersion.value == "2.12.2" || scalaVersion.value == "2.13.0-M2") Set()
+    if(scalaVersion.value == "2.12.3" || scalaVersion.value == "2.13.0-M2") Set()
     else Set(organization.value %% moduleName.value % "1.1.0")
   },
 
