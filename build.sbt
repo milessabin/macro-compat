@@ -1,5 +1,5 @@
 import com.typesafe.sbt.pgp.PgpKeys.publishSigned
-import org.scalajs.sbtplugin.cross.CrossProject
+import sbtcrossproject.{crossProject, CrossProject, CrossType}
 import ReleaseTransformations._
 
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
@@ -63,7 +63,7 @@ lazy val root = project.in(file("."))
   .settings(coreSettings:_*)
   .settings(noPublishSettings)
 
-lazy val core = crossProject.crossType(CrossType.Pure)
+lazy val core = crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure)
   .settings(moduleName := "macro-compat")
   .settings(coreSettings:_*)
   .settings(mimaSettings:_*)
@@ -73,7 +73,7 @@ lazy val core = crossProject.crossType(CrossType.Pure)
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
 
-lazy val test = crossProject.crossType(CrossType.Pure)
+lazy val test = crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure)
   .configureCross(configureJUnit)
   .dependsOn(core)
   .settings(moduleName := "macro-compat-test")
