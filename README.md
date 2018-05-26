@@ -70,10 +70,10 @@ class TestMacro(val c: whitebox.Context) {
 
 This code compiles on Scala 2.10.x, 2.11.x, 2.12.x and 2.13.x.
 
-The `@bundle` annotation is implemented as a macro annotation via the [macro-paradise][macro-paradise] compiler
-plugin. On Scala 2.11.x, 2.12.x and 2.13.x the annotation is simply eliminated during compilation, leaving no trace in
-the resulting binaries. On Scala 2.10.x the annotation macro transforms the macro bundle class to an object definition
-which is compatible with the 2.10.x macro API.
+The `@bundle` annotation is implemented as a macro annotation via the [macro-paradise][macro-paradise] compiler plugin
+(the plugin is no longer necessary with 2.13.x). On Scala 2.11.x, 2.12.x and 2.13.x the annotation is simply
+eliminated during compilation, leaving no trace in the resulting binaries. On Scala 2.10.x the annotation macro
+transforms the macro bundle class to an object definition which is compatible with the 2.10.x macro API.
 
 ## Current status
 
@@ -102,11 +102,22 @@ resolvers ++= Seq(
 
 Builds are available for Scala 2.10.x, 2.11.x, 2.12.x and 2.13.x for Scala JDK and Scala.js.
 
+For Scala 2.12.x and earlier, add the following to your build,
+
 ```scala
 libraryDependencies ++= Seq(
   "org.typelevel" %% "macro-compat" % "1.1.1",
   "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
   compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.patch)
+)
+```
+
+For Scala 2.13.0-M4 and later, add the following,
+
+```scala
+libraryDependencies ++= Seq(
+  "org.typelevel" %% "macro-compat" % "1.1.1",
+  "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided"
 )
 ```
 
