@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package scala.annotation
+package scala
 
-import scala.annotation.meta._
-
-@getter @setter @beanGetter @beanSetter @companionClass @companionMethod
-final class compileTimeOnly(message: String) extends scala.annotation.StaticAnnotation
+package object annotation {
+  type compileTimeOnly = scala.reflect.internal.annotations.compileTimeOnly
+}
