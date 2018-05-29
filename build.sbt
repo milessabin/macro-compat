@@ -8,11 +8,12 @@ import MimaKeys.{mimaPreviousArtifacts, mimaBinaryIssueFilters}
 import com.typesafe.tools.mima.core._
 import com.typesafe.tools.mima.core.ProblemFilters._
 
+lazy val scala211 = "2.11.12"
 
 lazy val buildSettings = Seq(
   organization := "org.typelevel",
   scalaVersion := "2.10.7",
-  crossScalaVersions := Seq("2.10.7", "2.11.12", "2.12.6", "2.13.0-M4")
+  crossScalaVersions := Seq("2.10.7", scala211, "2.12.6", "2.13.0-M4")
 )
 
 lazy val commonSettings = Seq(
@@ -63,17 +64,22 @@ lazy val root = project.in(file("."))
   .settings(coreSettings:_*)
   .settings(noPublishSettings)
 
-lazy val core = crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure)
+lazy val core = crossProject(JSPlatform, JVMPlatform, NativePlatform).crossType(CrossType.Pure)
   .settings(moduleName := "macro-compat")
   .settings(coreSettings:_*)
   .settings(mimaSettings:_*)
   .jsSettings(commonJsSettings:_*)
   .jvmSettings(commonJvmSettings:_*)
+  .nativeSettings(
+    scalaVersion := scala211,
+    crossScalaVersions := Seq(scala211)
+  )
 
 lazy val coreJVM = core.jvm
 lazy val coreJS = core.js
+lazy val coreNative = core.native
 
-lazy val test = crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure)
+lazy val test = crossProject(JSPlatform, JVMPlatform, NativePlatform).crossType(CrossType.Pure)
   .configureCross(configureJUnit)
   .dependsOn(core)
   .settings(moduleName := "macro-compat-test")
@@ -84,11 +90,22 @@ lazy val test = crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure)
 
 lazy val testJVM = test.jvm
 lazy val testJS = test.js
+lazy val testNative = test.native
+
+lazy val nativeTest = project.in(file("native-test"))
+  .disablePlugins(sbt.plugins.BackgroundRunPlugin)
+  .dependsOn(testNative)
+  .enablePlugins(ScalaNativePlugin)
+  .settings(
+    scalaVersion := scala211,
+    noPublishSettings
+  )
 
 addCommandAlias("validate", ";root;compile;mimaReportBinaryIssues;test")
 addCommandAlias("release-all", ";root;release")
 addCommandAlias("js", ";project coreJS")
 addCommandAlias("jvm", ";project coreJVM")
+addCommandAlias("native", ";project coreNative")
 addCommandAlias("root", ";project root")
 
 lazy val scalaMacroDependencies: Seq[Setting[_]] = Seq(
