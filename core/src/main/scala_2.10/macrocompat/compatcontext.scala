@@ -40,7 +40,7 @@ sealed trait CompatContext extends Context {
   case class ImplicitCandidate211(pre: Type, sym: Symbol, pt: Type, tree: Tree)
   val ImplicitCandidate: ImplicitCandidateCompanion
   abstract class ImplicitCandidateCompanion {
-    def apply(pre: Type, sym: Symbol, pt: Type, tree: Tree)
+    def apply(pre: Type, sym: Symbol, pt: Type, tree: Tree): Unit
     def unapply(t: (Type, Tree)): Option[(Type, Symbol, Type, Tree)]
   }
 
