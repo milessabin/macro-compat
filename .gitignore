@@ -1,6 +1,7 @@
 scratch/
 target/
 .sbtrc
+local.sbt
 
 # Ignore project files for Eclipse
 /.classpath
