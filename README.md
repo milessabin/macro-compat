@@ -83,7 +83,7 @@ additions to the backport component and it is now seeing use in several other pr
 coverage has been expanded sufficiently to cover all the macro API usage in shapeless. I would be delighted for more
 projects to pick it up and extend it to cover their needs as well.
 
-If you would like to see or contribute particuluar extensions to the backport, please create issues here or hop on the
+If you would like to see or contribute particular extensions to the backport, please create issues here or hop on the
 [gitter channel][macrocompat-gitter]. Discussion is also welcome on the [shapeless][shapeless-gitter] and
 [cats][cats-gitter] gitter channels ... please let us know what you think.
 
@@ -124,7 +124,7 @@ libraryDependencies ++= Seq(
 ## Binary compatibility
 
 As of version 1.0.7 macro-compat uses [MiMa][mima] to verify binary compatibility within minor versions. Binary
-compatibility was broken in 1.0.3 and again in 1.0.6. In version 1.0.7 binary compatability with 1.0.3-5 has been
+compatibility was broken in 1.0.3 and again in 1.0.6. In version 1.0.7 binary compatibility with 1.0.3-5 has been
 restored and 1.0.6 is now deprecated. The binary compatibility breaking changes were moved to 1.1.0 and hopefully
 the addition of MiMa to the build will make a recurrence of this sort of breakage much less likely in future.
 
