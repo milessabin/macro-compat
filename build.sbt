@@ -93,7 +93,6 @@ lazy val testJS = test.js
 lazy val testNative = test.native
 
 lazy val nativeTest = project.in(file("native-test"))
-  .disablePlugins(sbt.plugins.BackgroundRunPlugin)
   .dependsOn(testNative)
   .enablePlugins(ScalaNativePlugin)
   .settings(
@@ -170,8 +169,8 @@ lazy val publishSettings = Seq(
 )
 
 lazy val noPublishSettings = Seq(
-  publish := (),
-  publishLocal := (),
+  publish := (()),
+  publishLocal := (()),
   publishArtifact := false
 )
 
