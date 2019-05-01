@@ -134,8 +134,10 @@ macro-compat is built with SBT 0.13.16 or later.
 
 ## Participation
 
-The macro-compat project supports the [Typelevel][typelevel] [code of conduct][codeofconduct] and wants all of its
+The macro-compat project supports the [Scala Code of Conduct][codeofconduct] and wants all of its
 channels (Gitter, github, etc.) to be welcoming environments for everyone.
+
+[codeofconduct]: https://www.scala-lang.org/conduct/
 
 ## Projects using macro-compat
 
