@@ -13,7 +13,7 @@ lazy val scala211 = "2.11.12"
 lazy val buildSettings = Seq(
   organization := "org.typelevel",
   scalaVersion := "2.10.7",
-  crossScalaVersions := Seq("2.10.7", scala211, "2.12.6", "2.13.0-RC1")
+  crossScalaVersions := Seq("2.10.7", scala211, "2.12.8", "2.13.0-RC2")
 )
 
 lazy val commonSettings = Seq(
@@ -176,7 +176,7 @@ lazy val noPublishSettings = Seq(
 
 lazy val mimaSettings = mimaDefaultSettings ++ Seq(
   mimaPreviousArtifacts := {
-    if(scalaVersion.value == "2.12.6" || scalaVersion.value == "2.13.0-RC1") Set()
+    if(scalaVersion.value == "2.12.8" || scalaVersion.value == "2.13.0-RC2") Set()
     else Set(organization.value %% moduleName.value % "1.1.0")
   },
 
