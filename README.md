@@ -112,7 +112,7 @@ libraryDependencies ++= Seq(
 )
 ```
 
-For Scala 2.13.0-RC3 and later, add the following,
+For Scala 2.13.0 and later, add the following,
 
 ```scala
 libraryDependencies ++= Seq(
